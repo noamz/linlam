@@ -26,9 +26,9 @@ toLT I         = L 0 $ V 0
 
 abstract :: Int -> BCI -> BCI
 abstract i t = case t of
-  Var _                    -> I
+  Var _                     -> I
   App t1 t2 | i < arity' t1 -> foldl App C [abstract i t1, t2]
-  App t1 t2 | otherwise    -> foldl App B [t1, abstract (i-arity' t1) t2]
+  App t1 t2 | otherwise     -> foldl App B [t1, abstract (i-arity' t1) t2]
 
 fromLT :: LT -> BCI
 fromLT (V x)   = Var x
@@ -37,5 +37,12 @@ fromLT (L x t) = abstract i (fromLT t)
   where
     Just i = elemIndex x (free t)
 
+size' :: BCI -> Int
+size' (Var _)   = 1
+size' (App t u) = 1 + size' t + size' u
+size' B         = 8
+size' C         = 8
+size' I         = 2
+
 overheadBCI :: Fractional a => LT -> a
-overheadBCI t = fromIntegral (size (toLT (fromLT t))) / fromIntegral (size t)
+overheadBCI t = fromIntegral (size' (fromLT t)) / fromIntegral (size t)
