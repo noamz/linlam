@@ -5,7 +5,6 @@ import Data.List
 import Data.List.Split
 
 import Diagrams.Prelude
--- import Diagrams.Backend.SVG.CmdLine
 import Diagrams.Backend.SVG
 
 import LinLam

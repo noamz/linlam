@@ -44,27 +44,14 @@ support (V x)     = [x]
 support (A t1 t2) = support t2 ++ support t1
 support (L x t1)  = x : support t1
 
--- apply a variable renaming
-rename :: (Int -> Int) -> LT -> LT
-rename f (V x)     = V (f x)
-rename f (A t1 t2) = A (rename f t1) (rename f t2)
-rename f (L x t1)  = L (f x) (rename f t1)
-
-swapname :: (Int,Int) -> LT -> LT
-swapname (x,y) = rename (\z -> if z == x then y else if z == y then x else z)
-
--- alpha equivalence
-alphaEq :: LT -> LT -> Bool
-alphaEq (V x1)    (V x2)    = x1 == x2
-alphaEq (A t1 u1) (A t2 u2) = alphaEq t1 t2 && alphaEq u1 u2
-alphaEq (L x1 t1) (L x2 t2) = alphaEq t1 (swapname (x2,x1) t2)
-alphaEq _         _         = False
-
--- rename the variables in t2 so that it has support disjoint from t1
-shift :: LT -> LT -> LT
-shift t1 t2 = rename (+(1+maximum(support t1))) t2
-
--- generate all terms with n subterms and k free variables
+-- Generic routine for generating all terms with n subterms and k free variables.
+-- Inputs:
+--   pick : function taking a context and selects a variable to abstract
+--   bridgeless : set to True to restrict to terms with no closed subterms
+--   normal : set to True to restrict to terms with no beta redices
+-- Output:
+--   list of triples ([xs],n,t), where t is a term with free variables xs
+--   and support of variables [0..n].
 gentm :: ([Int] -> [(Int,[Int])]) -> Bool -> Bool -> Int -> Int -> [([Int],Int,LT)]
 gentm pick bridgeless normal = Memo.memo2 integral integral gen'
   where
@@ -91,6 +78,7 @@ thd3 (a,b,c) = c
 (.:) :: (c -> d) -> (a -> b -> c) -> (a -> b -> d)
 (.:) f g a b = f (g a b)
 
+-- naming scheme: L = linear, P = planar, B = bridgeless, N = normal
 allLT   = map thd3 .: gentm P.pick1 False False
 allBLT  = map thd3 .: gentm P.pick1 True  False
 allPT   = map thd3 .: gentm P.ucons False False
@@ -100,19 +88,39 @@ allNBLT = map thd3 .: gentm P.pick1 True  True
 allNPT  = map thd3 .: gentm P.ucons False True
 allNBPT = map thd3 .: gentm P.ucons True  True
 
--- substitution
+-- apply a variable renaming
+rename :: (Int -> Int) -> LT -> LT
+rename f (V x)     = V (f x)
+rename f (A t1 t2) = A (rename f t1) (rename f t2)
+rename f (L x t1)  = L (f x) (rename f t1)
 
+-- apply a variable swapping
+swapname :: (Int,Int) -> LT -> LT
+swapname (x,y) = rename (\z -> if z == x then y else if z == y then x else z)
+
+-- alpha equivalence
+alphaEq :: LT -> LT -> Bool
+alphaEq (V x1)    (V x2)    = x1 == x2
+alphaEq (A t1 u1) (A t2 u2) = alphaEq t1 t2 && alphaEq u1 u2
+alphaEq (L x1 t1) (L x2 t2) = alphaEq t1 (swapname (x2,x1) t2)
+alphaEq _         _         = False
+
+-- rename the variables in t2 so that it has support disjoint from t1
+shift :: LT -> LT -> LT
+shift t1 t2 = rename (+(1+maximum(support t1))) t2
+
+-- substitution
 subst :: (LT,Int) -> LT -> LT
 subst (u,x) t =
   case t of
     V y
-      | x == y                 -> u
-      | otherwise              -> V y
-    A t1 t2                    -> A (subst (u,x) t1) (subst (u,x) t2)
+      | x == y                -> u
+      | otherwise             -> V y
+    A t1 t2                   -> A (subst (u,x) t1) (subst (u,x) t2)
     L y t1
-      | x == y                 -> L y t1
+      | x == y                -> L y t1
       | not (y `elem` free u) -> L y (subst (u,x) t1)
-      | otherwise              -> L y' (subst (u,x) $ rename syy' t1)
+      | otherwise             -> L y' (subst (u,x) $ rename syy' t1)
         where
           y' = 1 + maximum (support t1 ++ support u)
           syy' = \x -> if x == y then y' else x
@@ -136,10 +144,6 @@ focus t = (Hole,t) :
                        [(A'1 k t2,u) | (k,u) <- focus t1]
             L x t1  -> [(L' x k,u) | (k,u) <- focus t1]
 
-isBetaRedex :: LT -> Bool
-isBetaRedex (A (L _ _) _) = True
-isBetaRedex _             = False
-
 -- focus on all possible beta-redices subterms
 focusBeta :: LT -> [(LTdot,LT)]
 focusBeta t = 
@@ -150,16 +154,20 @@ focusBeta t =
                        [(A'1 k t2,u) | (k,u) <- focusBeta t1]
             L x t1  -> [(L' x k,u) | (k,u) <- focusBeta t1]
 
+-- step of beta reduction
 beta :: LT -> [LT]
 beta t = do
   (k, A (L x t1) t2) <- focusBeta t
   return $ plug k (subst (t2,x) t1)
 
+-- test if beta normal
 isNormal :: LT -> Bool
 isNormal t = null (beta t)
 
+-- normalize a term
 normalize :: LT -> LT
 normalize t = until isNormal (head . beta) t
 
+-- beta equivalence
 betaEq :: LT -> LT -> Bool
 betaEq t1 t2 = alphaEq (normalize t1) (normalize t2)
