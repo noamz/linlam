@@ -37,6 +37,9 @@ fromLT (L x t) = abstract i (fromLT t)
   where
     Just i = elemIndex x (free t)
 
+toBCILT :: LT -> LT
+toBCILT = toLT . fromLT
+
 size' :: BCI -> Int
 size' (Var _)   = 1
 size' (App t u) = 1 + size' t + size' u
