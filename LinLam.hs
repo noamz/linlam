@@ -38,11 +38,11 @@ free (V x)      = [x]
 free (A t1 t2)  = free t1 ++ free t2
 free (L x t1)   = free t1 \\ [x]
 
--- support = list of all variables in a term, in prefix right-to-left order
+-- support = set of all variables occurring in a term
 support :: LT -> [Int]
 support (V x)     = [x]
-support (A t1 t2) = support t2 ++ support t1
-support (L x t1)  = x : support t1
+support (A t1 t2) = support t1 `union` support t2
+support (L x t1)  = [x] `union` support t1
 
 -- Generic routine for generating all terms with n subterms and k free variables.
 -- Inputs:
@@ -98,7 +98,7 @@ rename f (L x t1)  = L (f x) (rename f t1)
 swapname :: (Int,Int) -> LT -> LT
 swapname (x,y) = rename (\z -> if z == x then y else if z == y then x else z)
 
--- alpha equivalence
+-- checks t1 =alpha t2
 alphaEq :: LT -> LT -> Bool
 alphaEq (V x1)    (V x2)    = x1 == x2
 alphaEq (A t1 u1) (A t2 u2) = alphaEq t1 t2 && alphaEq u1 u2
@@ -114,26 +114,28 @@ subst :: (LT,Int) -> LT -> LT
 subst (u,x) t =
   case t of
     V y
-      | x == y                -> u
+      | y == x                -> u
       | otherwise             -> V y
-    A t1 t2                   -> A (subst (u,x) t1) (subst (u,x) t2)
+    A t1 t2
+      | x `elem` free t1      -> A (subst (u,x) t1) t2
+      | otherwise             -> A t1 (subst (u,x) t2)
     L y t1
-      | x == y                -> L y t1
+      | y == x                -> L y t1
       | not (y `elem` free u) -> L y (subst (u,x) t1)
-      | otherwise             -> L y' (subst (u,x) $ rename syy' t1)
+      | otherwise             -> L z (subst (u,x) t1')
         where
-          y' = 1 + maximum (support t1 ++ support u)
-          syy' = \x -> if x == y then y' else x
+          z = 1 + maximum (x : support t1 ++ support u)
+          t1' = rename (\w -> if w == y then z else w) t1
 
 -- datatype of one-hole contexts for linear terms
 data LTdot = Hole | A'1 LTdot LT | A'2 LT LTdot | L' Int LTdot
   deriving (Show,Eq)
 
 plug :: LTdot -> LT -> LT
-plug Hole      t = t
-plug (A'1 k u) t = A (plug k t) u
-plug (A'2 u k) t = A u (plug k t)
-plug (L' x k)  t = L x (plug k t)
+plug Hole       u = u
+plug (A'1 k t2) u = A (plug k u) t2
+plug (A'2 t1 k) u = A t1 (plug k u)
+plug (L' x k)   u = L x (plug k u)
 
 -- focus on all possible subterms
 focus :: LT -> [(LTdot,LT)]
@@ -142,7 +144,7 @@ focus t = (Hole,t) :
             V x     -> []
             A t1 t2 -> [(A'2 t1 k,u) | (k,u) <- focus t2] ++
                        [(A'1 k t2,u) | (k,u) <- focus t1]
-            L x t1  -> [(L' x k,u) | (k,u) <- focus t1]
+            L x t1  -> [(L' x k,u)   | (k,u) <- focus t1]
 
 -- focus on all possible beta-redices subterms
 focusBeta :: LT -> [(LTdot,LT)]
@@ -168,6 +170,11 @@ isNormal t = null (beta t)
 normalize :: LT -> LT
 normalize t = until isNormal (head . beta) t
 
--- beta equivalence
+-- checks t1 =beta t2
 betaEq :: LT -> LT -> Bool
 betaEq t1 t2 = alphaEq (normalize t1) (normalize t2)
+
+-- checks t1 <=beta t2
+betaLE :: LT -> LT -> Bool
+betaLE t1 t2 = alphaEq t1 t2 || any (\t1' -> betaLE t1' t2) (beta t1)
+
