@@ -1,7 +1,11 @@
 module LinLam where
 
 import Data.List
+import Data.Maybe
 import Data.MemoCombinators as Memo
+
+import Control.Monad.State
+import Control.Monad.Identity
 
 import qualified Permutations as P
 
@@ -38,11 +42,19 @@ free (V x)      = [x]
 free (A t1 t2)  = free t1 ++ free t2
 free (L x t1)   = free t1 \\ [x]
 
+-- lambda closure of a term
+closure :: LT -> LT
+closure t = foldr L t (free t)
+
 -- support = set of all variables occurring in a term
 support :: LT -> [Int]
 support (V x)     = [x]
 support (A t1 t2) = support t1 `union` support t2
 support (L x t1)  = [x] `union` support t1
+
+-- returns a variable that is fresh for a list of terms
+fresh :: [LT] -> Int
+fresh ts = 1 + maximum (-1 : concatMap support ts)
 
 -- Generic routine for generating all terms with n subterms and k free variables.
 -- Inputs:
@@ -105,9 +117,28 @@ alphaEq (A t1 u1) (A t2 u2) = alphaEq t1 t2 && alphaEq u1 u2
 alphaEq (L x1 t1) (L x2 t2) = alphaEq t1 (swapname (x2,x1) t2)
 alphaEq _         _         = False
 
+-- use a canonical naming scheme for the variables in a term, with a
+-- distinct name for each occurrence
+canonify :: LT -> LT
+canonify t = fst $ runState (go t') (arity t)
+  where
+    vs = free t
+    t' = foldr swapname t (zip (free t) [0..])
+    go :: LT -> StateT Int Identity LT
+    go (V x)   = return (V x)
+    go (L x t) = do
+      n <- get
+      put (n+1)
+      t' <- go (swapname (x,n) t)
+      return (L n t')
+    go (A t u) = do
+      t' <- go t
+      u' <- go u
+      return (A t' u')
+
 -- rename the variables in t2 so that it has support disjoint from t1
 shift :: LT -> LT -> LT
-shift t1 t2 = rename (+(1+maximum(support t1))) t2
+shift t1 t2 = rename (+fresh [t1]) t2
 
 -- substitution
 subst :: (LT,Int) -> LT -> LT
@@ -124,7 +155,7 @@ subst (u,x) t =
       | not (y `elem` free u) -> L y (subst (u,x) t1)
       | otherwise             -> L z (subst (u,x) t1')
         where
-          z = 1 + maximum (x : support t1 ++ support u)
+          z = fresh [V x, t1, u]
           t1' = rename (\w -> if w == y then z else w) t1
 
 -- datatype of one-hole contexts for linear terms
@@ -145,6 +176,10 @@ focus t = (Hole,t) :
             A t1 t2 -> [(A'2 t1 k,u) | (k,u) <- focus t2] ++
                        [(A'1 k t2,u) | (k,u) <- focus t1]
             L x t1  -> [(L' x k,u)   | (k,u) <- focus t1]
+
+-- list of subterms
+subterms :: LT -> [LT]
+subterms = map snd . focus
 
 -- focus on all possible beta-redices subterms
 focusBeta :: LT -> [(LTdot,LT)]
@@ -177,4 +212,32 @@ betaEq t1 t2 = alphaEq (normalize t1) (normalize t2)
 -- checks t1 <=beta t2
 betaLE :: LT -> LT -> Bool
 betaLE t1 t2 = alphaEq t1 t2 || any (\t1' -> betaLE t1' t2) (beta t1)
+
+-- focus on all possible eta-redices subterms
+focusEta :: LT -> [(LTdot,LT)]
+focusEta t = 
+          case t of
+            V x     -> []
+            A t1 t2 -> [(A'2 t1 k,u) | (k,u) <- focusEta t2] ++
+                       [(A'1 k t2,u) | (k,u) <- focusEta t1]
+            L x t1  -> [(Hole,t) | isApp t1, let A t11 t12 = t1, t12 == V x] ++
+                       [(L' x k,u) | (k,u) <- focusEta t1]
+
+-- step of eta reduction
+eta :: LT -> [LT]
+eta t = do
+  (k, L _ (A t1 _)) <- focusEta t
+  return $ plug k t1
+
+-- eta-short normal form of a term
+etaShort :: LT -> LT
+etaShort t = until (null . eta) (head . eta) t
+
+-- checks t1 =eta t2
+etaEq :: LT -> LT -> Bool
+etaEq t1 t2 = alphaEq (etaShort t1) (etaShort t2)
+
+-- checks t1 =betaeta t2
+betaEtaEq :: LT -> LT -> Bool
+betaEtaEq t1 t2 = alphaEq (etaShort $ normalize t1) (etaShort $ normalize t2)
 
