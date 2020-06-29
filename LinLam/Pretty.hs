@@ -1,9 +1,9 @@
 module LinLam.Pretty where
 
-import Control.Monad.State
-import Control.Monad.Identity
+import Data.Char
 
 import LinLam
+import LinLam.Typing
 
 paren :: String -> String
 paren s = "(" ++ s ++ ")"
@@ -21,3 +21,14 @@ prettyLTc = prettyLT . snd
 
 printLT  = putStrLn . prettyLT
 printLTc = putStrLn . prettyLTc
+
+prettyTVar :: Int -> String
+prettyTVar i
+  | i < 25    = [chr (945 + i)]
+  | otherwise = "X" ++ show (i - 25)
+
+prettyType :: Type -> String
+prettyType (TVar x)  = prettyTVar x
+prettyType (TFn a b) = paren (prettyType a ++ " -> " ++ prettyType b)
+
+printType = putStrLn . prettyType

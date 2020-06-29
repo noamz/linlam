@@ -21,8 +21,8 @@ attach lab n1 n2 n =
   withName n1 $ \b1 ->
   withName n2 $ \b2 ->
   let p = head $ intersectPoints
-          (position [(location b1,fromOffsets [ 100*unitX # rotateBy (7/8)])] :: Path V2 Double)
-          (position [(location b2,fromOffsets [ 100*unitX # rotateBy (5/8)])] :: Path V2 Double)
+          (position [(location b1,fromOffsets [ 500*unitX # rotateBy (7/8)])] :: Path V2 Double)
+          (position [(location b2,fromOffsets [ 500*unitX # rotateBy (5/8)])] :: Path V2 Double) ++ [p2 (0,0)]
   in
    atop $
    position [(p,lab # named n & pad 3)]
@@ -65,8 +65,9 @@ lt2arcs (L x t1)  = lt2arcs t1 ++ [D x]
 
 diagLT :: LT -> Diagram B
 diagLT t =
-  let (d,ns) = lamTree [] t in
-  let w = lt2arcs t in
+  let t' = canonify t in
+  let (d,ns) = lamTree [] t' in
+  let w = lt2arcs t' in
   let gd = diagArcs_glue ns w d in
   (withName ([] :: String) $ \b ->
    atop $ spot # named "root" # moveTo (location b) # translateY (-1))
@@ -80,7 +81,7 @@ renderLT t basename = do
 
 renderLTs :: [LT] -> String -> IO ()
 renderLTs ts basename = do
-  renderPretty (basename ++ ".svg") (mkWidth 1024) (vsep 1.3 [hsep 1 ds # pad 1.1 | ds <- chunksOf r [mkDiagram t | t <- ts]])
+  renderPretty (basename ++ ".svg") (mkWidth 2048) (vsep 1.3 [hsep 1 ds # pad 1.1 | ds <- chunksOf r [mkDiagram t | t <- ts]])
     where
       r = ceiling (sqrt(fromIntegral $ length ts))
       mkDiagram t = vsep 1 [diagLT t # centerX, text (prettyLT t) # centerX]
