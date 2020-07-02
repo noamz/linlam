@@ -46,6 +46,24 @@ free (L x t1)   = free t1 \\ [x]
 closure :: LT -> LT
 closure t = foldr L t (free t)
 
+-- deconstruct a sequence of nested lambdas, returning the list of
+-- lambda-bound variables in reverse and the body of the innermost lambda.
+-- Satisfies foldl (flip L) u xs = t where (xs,u) = unlambdas t
+unlambdas :: LT -> ([Int], LT)
+unlambdas t = go t []
+  where
+    go (L x t) xs = go t (x:xs)
+    go u       xs = (xs, u)
+
+-- deconstruct a sequence of left-nested applications, returning the head
+-- and the list of arguments in order.
+-- Satisfies foldl A u us = t where (u,us) = unapps t
+unapps :: LT -> (LT,[LT])
+unapps t = go t []
+  where
+    go (A t u) us = go t (u:us)
+    go u       us = (u, us)
+
 -- support = set of all variables occurring in a term
 support :: LT -> [Int]
 support (V x)     = [x]
@@ -158,6 +176,10 @@ subst (u,x) t =
           z = fresh [V x, t1, u]
           t1' = rename (\w -> if w == y then z else w) t1
 
+-- applies a list of substitutions in sequential order
+msubst :: [(LT,Int)] -> LT -> LT
+msubst rho t = foldl (flip subst) t rho
+
 -- datatype of one-hole contexts for linear terms
 data LTdot = Hole | A'1 LTdot LT | A'2 LT LTdot | L' Int LTdot
   deriving (Show,Eq)
@@ -180,6 +202,10 @@ focus t = (Hole,t) :
 -- list of subterms
 subterms :: LT -> [LT]
 subterms = map snd . focus
+
+-- list of proper subterms
+subterms' :: LT -> [LT]
+subterms' = tail . subterms
 
 -- focus on all possible beta-redices subterms
 focusBeta :: LT -> [(LTdot,LT)]
