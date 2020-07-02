@@ -7,8 +7,8 @@ import Data.List.Split
 import Diagrams.Prelude
 import Diagrams.Backend.SVG
 
-import LinLam
-import LinLam.Pretty
+import LinLam as LL
+import LinLam.Pretty as LLP
 
 lamcolor = lightblue
 appcolor = indianred
@@ -73,15 +73,15 @@ diagLT t =
    atop $ spot # named "root" # moveTo (location b) # translateY (-1))
   gd # (connectOutside' (with & arrowHead .~ noHead) "root" ([]::String) # lwL 0.1) 
 
+diagLT' t = vsep 1 [diagLT t # centerX, text (LLP.prettyLT t) # centerX]
+
 renderLT :: LT -> String -> IO ()
 renderLT t basename = do
-  renderPretty (basename ++ ".svg") (mkWidth 1024) (mkDiagram t # pad 1.1)
-    where
-      mkDiagram t = vsep 1 [diagLT t # centerX, text (prettyLT t) # centerX]
+  renderPretty (basename ++ ".svg") (mkWidth 1024) (diagLT' t # pad 1.1)
 
 renderLTs :: [LT] -> String -> IO ()
 renderLTs ts basename = do
-  renderPretty (basename ++ ".svg") (mkWidth 2048) (vsep 1.3 [hsep 1 ds # pad 1.1 | ds <- chunksOf r [mkDiagram t | t <- ts]])
+  renderPretty (basename ++ ".svg") (mkWidth 2048) (vsep 1.3 [hsep 1 ds # pad 1.1 | ds <- chunksOf r [diagLT' t | t <- ts]])
     where
       r = ceiling (sqrt(fromIntegral $ length ts))
-      mkDiagram t = vsep 1 [diagLT t # centerX, text (prettyLT t) # centerX]
+    
