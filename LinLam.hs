@@ -12,8 +12,23 @@ import qualified Permutations as P
 -- datatype of linear lambda terms
 data LT = V Int | A LT LT | L Int LT
   deriving (Show,Eq)
+-- note that the datatype does not exclude "pseudoterms", i.e., ill-scoped
+-- terms like A (V 0) (L 0 (L 1 (V 1))) (representing "a(\a.\b.b)")
+
 -- a term-in-context is a term together with a permutation of its free variables
 type LTc = ([Int], LT)
+
+-- check that a pseudo-term is well-scoped
+wellScoped :: LT -> Bool
+wellScoped t = go t (free t) == Just []
+  where
+    go (V x)   gamma
+      | x `elem` gamma = Just (gamma \\ [x])
+      | otherwise      = Nothing
+    go (A t u) gamma = do
+      gamma' <- go t gamma
+      go u gamma'
+    go (L x t) gamma = go t (x:gamma)
 
 -- classify terms by top-level constructor
 isVar, isApp, isLam :: LT -> Bool
