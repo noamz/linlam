@@ -5,6 +5,8 @@ import Data.Maybe
 import qualified Data.Set as Set
 
 import Control.Monad
+
+import System.Random
 import qualified System.Random.Shuffle as RG
 
 import LinLam
@@ -58,7 +60,17 @@ toLT m r visited boundary
 randomLT :: Int -> IO LT
 randomLT n = do
   unless (n >= 2 && (n-2) `mod` 3 == 0) (fail "invalid size")
-  m <- kregular' 3 (1 + 2 * (n-2) `div` 3)
+  let as = (n-2) `div` 3
+  let ls = 1 + as
+  m <- kregular' 3 (as + ls)
   let (t, _) = toLT m (root m) Set.empty Set.empty
   return (canonify t)
-  
+
+-- return a random closed bridgeless linear lambda term of size n
+randomBLT :: Int -> IO LT
+randomBLT n = do
+  t <- randomLT n
+  case filter (null . free) (subterms t) of
+    [_] -> return t
+    _   -> randomBLT n
+
