@@ -180,9 +180,7 @@ subst (u,x) t =
     V y
       | y == x                -> u
       | otherwise             -> V y
-    A t1 t2
-      | x `elem` free t1      -> A (subst (u,x) t1) t2
-      | otherwise             -> A t1 (subst (u,x) t2)
+    A t1 t2                   -> A (subst (u,x) t1) (subst (u,x) t2)
     L y t1
       | y == x                -> L y t1
       | not (y `elem` free u) -> L y (subst (u,x) t1)
@@ -190,6 +188,17 @@ subst (u,x) t =
         where
           z = fresh [V x, t1, u]
           t1' = rename (\w -> if w == y then z else w) t1
+
+-- faster version of substitution without occurs check, which can
+-- be used when you know that the supports of u and t are distinct
+subst' :: (LT,Int) -> LT -> LT
+subst' (u,x) t =
+  case t of
+    V y
+      | y == x                -> u
+      | otherwise             -> V y
+    A t1 t2                   -> A (subst' (u,x) t1) (subst' (u,x) t2)
+    L y t1                    -> L y (subst' (u,x) t1)
 
 -- applies a list of substitutions in sequential order
 msubst :: [(LT,Int)] -> LT -> LT
@@ -238,6 +247,13 @@ beta t = do
   (k, A (L x t1) t2) <- focusBeta t
   return $ plug k (subst (t2,x) t1)
 
+-- faster beta reduction, that can be used when you know that all
+-- lambda bound variables are distinct
+beta' :: LT -> [LT]
+beta' t = do
+  (k, A (L x t1) t2) <- focusBeta t
+  return $ plug k (subst' (t2,x) t1)
+
 -- test if beta normal
 isNormal :: LT -> Bool
 isNormal t = null (beta t)
@@ -245,6 +261,11 @@ isNormal t = null (beta t)
 -- normalize a term
 normalize :: LT -> LT
 normalize t = until isNormal (head . beta) t
+
+-- faster normalization, that can be used when you know that all
+-- lambda bound variables are distinct
+normalize' :: LT -> LT
+normalize' t = until isNormal (head . beta') t
 
 -- checks t1 =beta t2
 betaEq :: LT -> LT -> Bool
