@@ -303,3 +303,11 @@ etaEq t1 t2 = alphaEq (etaShort t1) (etaShort t2)
 betaEtaEq :: LT -> LT -> Bool
 betaEtaEq t1 t2 = alphaEq (etaShort $ normalize t1) (etaShort $ normalize t2)
 
+-- fast test if a term is bridgeless
+isBridgeless :: LT -> Bool
+isBridgeless t = go t (\_ -> True)
+  where
+    go :: LT -> (Int -> Bool) -> Bool
+    go (V x)   cont = cont 1
+    go (A t u) cont = go t (\k1 -> go u (\k2 -> cont (k1+k2)))
+    go (L x t) cont = go t (\k1 -> if k1 > 1 then cont (k1-1) else False)

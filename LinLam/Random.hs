@@ -66,11 +66,10 @@ randomLT n = do
   let (t, _) = toLT m (root m) Set.empty Set.empty
   return (canonify t)
 
--- return a random closed bridgeless linear lambda term of size n
+-- return a random 1-variable-open bridgeless linear lambda term of size n
 randomBLT :: Int -> IO LT
 randomBLT n = do
-  t <- randomLT n
-  case filter (null . free) (subterms t) of
-    [_] -> return t
-    _   -> randomBLT n
-
+  t <- randomLT (n+1)
+  case t of 
+    L x u -> if isBridgeless u then return u else randomBLT n
+    _     -> randomBLT n
