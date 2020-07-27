@@ -2,7 +2,7 @@ module LinLam.Pretty where
 
 import Data.Char
 
-import LinLam
+import LinLam.Core
 import LinLam.Typing
 
 paren :: String -> String

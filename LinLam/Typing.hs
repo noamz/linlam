@@ -6,7 +6,7 @@ import Control.Monad.Identity
 import Data.List
 import Data.Maybe
 
-import LinLam
+import LinLam.Core
 
 data Type = TVar Int | TFn Type Type
   deriving (Show,Eq)

@@ -9,8 +9,7 @@ import Control.Monad
 import System.Random
 import qualified System.Random.Shuffle as RG
 
-import LinLam
-import LinLam.Diagrams
+import LinLam.Core
 
 data Carte = Carte { darts :: [Int], sigma :: [Int], alpha :: [Int] }
   deriving (Show,Eq)

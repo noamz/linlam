@@ -6,7 +6,7 @@ import Data.List
 import Diagrams.Prelude
 import Diagrams.Backend.SVG
 
-import LinLam as LL
+import LinLam.Core as LL
 import LinLam.Pretty as LLP
 import LinLam.Typing as LLT
 

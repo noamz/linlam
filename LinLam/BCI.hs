@@ -3,8 +3,7 @@ module LinLam.BCI where
 import Data.List
 import Data.Maybe
 
-import LinLam
-import LinLam.Pretty
+import LinLam.Core
 
 -- translation to BCI combinators as described in Chapter 6 of
 -- "Combinatory Logic: volume 1" by Curry, Feys, Craig
