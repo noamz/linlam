@@ -51,7 +51,7 @@ diagLT t = matchingDiag [("f" ++ show x,Bnd x) | x <- xs] fringe (vsep (height d
 text' :: Double -> String -> Diagram B
 text' s t = text t # fontSize (local s) <> strutY (s * 1.3) <> strutX (s * 0.5 * fromIntegral (length t))
 
-diagLT' t = vsep 1 [diagLT t # centerX, text' 1 (LLP.prettyLT t) # centerX] # pad 1.5
+diagLT' t = vsep 1 [diagLT t # centerX, text' 1 (LLP.prettyLT t) # centerX]
 
 renderLTs :: [LT] -> String -> IO ()
 renderLTs ts basename = do
