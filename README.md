@@ -124,7 +124,7 @@ Generate a table of string diagrams (proof-nets) representing the type structure
 ```
 ![nblt7,1](diagrams/nblt7,1.svg)
 
-Generate a random one-variable-open bridgeless term of size 451, normalize it, and diagram it's type structure:
+Generate a random one-variable-open bridgeless term of size 451, normalize it, and diagram its type structure (just the pure graphical diagram, without any Greek annotations):
 
 ```haskell
 *LinLam> t <- randomBLT (3*150+1)
