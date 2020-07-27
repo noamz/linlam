@@ -57,8 +57,8 @@ infer :: Monad m => LT -> StateT Straints m (TCtx,Type)
 
 check (V x)   tau = return [(x,tau)]
 check (A t u) tau = do
-  (gamma, sigma) <- infer u
-  delta <- check t (TFn sigma tau)
+  (delta, sigma) <- infer u
+  gamma <- check t (TFn sigma tau)
   return (gamma ++ delta)
 check t       tau = do
   (gamma, sigma) <- infer t
