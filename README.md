@@ -2,6 +2,11 @@
 
 A collection of Haskell routines for generating, normalizing, typing, diagrammifying, and otherwise playing with linear lambda terms.
 
+# Some related tools
+
+* George Kaye's [λ-term visualiser](https://www.georgejkaye.com/lambda-visualiser/visualiser.html) and [gallery](https://www.georgejkaye.com/lambda-visualiser/gallery)
+* Jason Reed's [Interactive Lambda Maps Toy](https://jcreedcmu.github.io/demo/lambda-map-drawer/public/index.html)
+
 # Dependencies
 
 * [data-memocombinators](https://hackage.haskell.org/package/data-memocombinators) (for term generation)
