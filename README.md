@@ -108,6 +108,30 @@ L 0 (V 0)
 \c.\b.\a.a(b)(c) : (β -> (γ -> ((γ -> (β -> α)) -> α)))
 ```
 
+## Making diagrams
+
+Generate a table of string diagrams (λ-graphs) representing the term structure of all closed planar terms of size 8 (in a file named `diagrams/pt8,0.svg`):
+
+```haskell
+*LinLam> renderLTs' (allPT 8 0) "diagrams/pt8,0"
+```
+![pt8,0](diagrams/pt8,0.svg)
+
+Generate a table of string diagrams (proof-nets) representing the type structure of all one-variable-open normal bridgeless terms of size 7:
+
+```haskell
+*LinLam> trenderNLTs' (allNBLT 7 1) "diagrams/nblt7,1"
+```
+![nblt7,1](diagrams/nblt7,1.svg)
+
+Generate a random one-variable-open bridgeless term of size 451, normalize it, and diagram it's type structure:
+
+```haskell
+*LinLam> t <- randomBLT (3*150+1)
+*LinLam> trenderNLT (normalize t) "diagrams/randomnlt"
+```
+![randomnlt](diagrams/randomnlt.svg)
+
 # License
 
 Free to use under an [MIT License](LICENSE).
