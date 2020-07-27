@@ -153,10 +153,13 @@ alphaEq _         _         = False
 -- use a canonical naming scheme for the variables in a term, with a
 -- distinct name for each occurrence
 canonify :: LT -> LT
-canonify t = fst $ runState (go t') (arity t)
+canonify t = t'''
   where
     vs = free t
-    t' = foldr swapname t (zip (free t) [0..])
+    n = fresh [t]
+    t' = foldl (\u (x,y) -> swapname (x,y) u) t (zip vs [n..])
+    t'' = fst $ runState (go t') (n + length vs)
+    t''' = rename (\x -> x-n) t''
     go :: LT -> StateT Int Identity LT
     go (V x)   = return (V x)
     go (L x t) = do
