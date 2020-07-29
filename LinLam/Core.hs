@@ -11,7 +11,7 @@ import qualified Permutations as P
 
 -- datatype of linear lambda terms
 data LT = V Int | A LT LT | L Int LT
-  deriving (Show,Eq)
+  deriving (Show)
 -- note that the datatype does not exclude "pseudoterms", i.e., ill-scoped
 -- terms like A (V 0) (L 0 (L 1 (V 1))) (representing "a(\a.\b.b)")
 
@@ -150,6 +150,9 @@ alphaEq (A t1 u1) (A t2 u2) = alphaEq t1 t2 && alphaEq u1 u2
 alphaEq (L x1 t1) (L x2 t2) = alphaEq t1 (swapname (x2,x1) t2)
 alphaEq _         _         = False
 
+instance Eq LT where
+  t1 == t2 = alphaEq t1 t2
+
 -- use a canonical naming scheme for the variables in a term, with a
 -- distinct name for each occurrence
 canonify :: LT -> LT
@@ -272,11 +275,15 @@ normalize' t = until isNormal (head . beta') t
 
 -- checks t1 =beta t2
 betaEq :: LT -> LT -> Bool
-betaEq t1 t2 = alphaEq (normalize t1) (normalize t2)
+betaEq t1 t2 = normalize t1 == normalize t2
 
 -- checks t1 <=beta t2
 betaLE :: LT -> LT -> Bool
-betaLE t1 t2 = alphaEq t1 t2 || any (\t1' -> betaLE t1' t2) (beta t1)
+betaLE t1 t2 = case compare (size t1) (size t2) of
+  LT -> False
+  EQ -> t1 == t2
+  GT -> let n = size t2 in
+        t2 `elem` (until (\ts -> null ts || size (head ts) == n) (foldr union [] . map beta) [t1])
 
 -- focus on all possible eta-redices subterms
 focusEta :: LT -> [(LTdot,LT)]
@@ -300,11 +307,11 @@ etaShort t = until (null . eta) (head . eta) t
 
 -- checks t1 =eta t2
 etaEq :: LT -> LT -> Bool
-etaEq t1 t2 = alphaEq (etaShort t1) (etaShort t2)
+etaEq t1 t2 = etaShort t1 == etaShort t2
 
 -- checks t1 =betaeta t2
 betaEtaEq :: LT -> LT -> Bool
-betaEtaEq t1 t2 = alphaEq (etaShort $ normalize t1) (etaShort $ normalize t2)
+betaEtaEq t1 t2 = etaShort (normalize t1) == etaShort (normalize t2)
 
 -- fast test if a term is bridgeless
 isBridgeless :: LT -> Bool

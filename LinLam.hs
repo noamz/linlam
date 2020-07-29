@@ -6,3 +6,4 @@ import LinLam.Pretty
 import LinLam.Random
 import LinLam.Diagrams
 
+import Data.List
