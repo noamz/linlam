@@ -1,7 +1,6 @@
 module LinLam.Diagrams.Grid where
 
 import Data.List
-import Data.List.Split
 
 import Diagrams.Prelude
 import Diagrams.Backend.SVG
@@ -13,3 +12,6 @@ gridDiagrams ds = vcat [hcat [(d # centerXY) `atop` cell | d <- row] | row <- ch
     maxWidth  = maximum [width d  | d <- ds]
     maxHeight = maximum [height d | d <- ds]
     cell = square (1.2 * max maxWidth maxHeight) # lwL 0.1
+    chunksOf r [] = []
+    chunksOf r ds = take r ds : chunksOf r (drop r ds)
+    
