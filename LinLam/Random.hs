@@ -72,3 +72,25 @@ randomBLT n = do
   case t of 
     L x u -> if isBridgeless u then return u else randomBLT n
     _     -> randomBLT n
+
+-- sort date to produce a histogram
+histogram :: Ord a => [a] -> [(a,Int)]
+histogram xs = map (\ys -> (head ys, length ys)) $ group $ sort xs
+
+-- given a statistic f of linear terms,
+-- generate p closed terms of size n
+-- and return the resulting histogram
+experimentLT :: Ord a => (LT -> a) -> Int -> Int -> IO [(a,Int)]
+experimentLT f n p = do
+  let r = randomLT n
+  ts <- sequence (replicate p r)
+  return $ histogram (map f ts)
+
+-- given a statistic f of bridgeless linear terms,
+-- generate p 1-variable-open terms of size n
+-- and return the resulting histogram
+experimentBLT :: Ord a => (LT -> a) -> Int -> Int -> IO [(a,Int)]
+experimentBLT f n p = do
+  let r = randomBLT n
+  ts <- sequence (replicate p r)
+  return $ histogram (map f ts)
