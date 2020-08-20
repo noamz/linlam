@@ -15,7 +15,14 @@ A collection of Haskell routines for generating, normalizing, typing, diagrammif
 
 # Documentation
 
-Not much for now!
+Not much documentation on the library for now!
+However, you can see the example sessions below for illustrations of how to use the library to do experimental lambda calculus.
+
+For more background, you may also have a look at some of the following papers:
+
+* [Asymptotics and random sampling for BCI and BCK lambda terms](https://dmg.tuwien.ac.at/dgardy/Papers/LogiqueQuantitative/BCI.pdf) by O. Bodini, D. Gardy, and A. Jacquot
+* [Linear lambda terms as invariants of rooted trivalent maps](https://arxiv.org/abs/1512.06751) by N. Zeilberger
+* [A theory of linear typings as flows on 3-valent graphs](https://arxiv.org/abs/1804.10540) by N. Zeilberger
 
 # Example sessions
 
@@ -36,7 +43,7 @@ Prelude> :load LinLam
 Ok, modules loaded: LinLam, LinLam.Core, LinLam.Diagrams, LinLam.Diagrams.Grid, LinLam.Diagrams.Matching, LinLam.Diagrams.Tree, LinLam.Pretty, LinLam.Random, LinLam.Typing, Permutations.
 *LinLam> allLT 5 0
 [A (L 0 (V 0)) (L 1 (V 1)),L 0 (A (V 0) (L 1 (V 1))),L 1 (A (L 0 (V 0)) (V 1)),L 0 (L 1 (A (V 0) (V 1))),L 1 (L 0 (A (V 0) (V 1)))]
-*LinLam> mapM_ printLT (allLT 5 0)
+*LinLam> printLTs (allLT 5 0)
 (\a.a)(\b.b)
 \a.a(\b.b)
 \b.(\a.a)(b)
@@ -44,7 +51,7 @@ Ok, modules loaded: LinLam, LinLam.Core, LinLam.Diagrams, LinLam.Diagrams.Grid, 
 \b.\a.a(b)
 *LinLam> allPT 5 0
 [A (L 0 (V 0)) (L 1 (V 1)),L 0 (A (V 0) (L 1 (V 1))),L 1 (A (L 0 (V 0)) (V 1)),L 0 (L 1 (A (V 0) (V 1)))]
-*LinLam> mapM_ printLT (allPT 5 0)
+*LinLam> printLTs (allPT 5 0)
 (\a.a)(\b.b)
 \a.a(\b.b)
 \b.(\a.a)(b)
@@ -57,12 +64,12 @@ Ok, modules loaded: LinLam, LinLam.Core, LinLam.Diagrams, LinLam.Diagrams.Grid, 
 [1,1,4,24,176,1456,13056]
 *LinLam> normalize (L 0 $ A (L 1 $ V 1) (V 0))
 L 0 (V 0)
-*LinLam> mapM_ printLT $ filter (betaEq (L 0 $ V 0)) (allLT 5 0)
+*LinLam> printLTs $ filter (betaEq (L 0 $ V 0)) (allLT 5 0)
 (\a.a)(\b.b)
 \b.(\a.a)(b)
 ```
 
-## Generating a random closed term and making some observations
+## Generating a random closed term and making some observations, or running a repeated experiment to generate a histogram
 
 ```haskell
 *LinLam> t <- randomLT (3*100+2)
@@ -74,12 +81,16 @@ L 0 (V 0)
 57
 *LinLam> length [u | u <- subterms t, arity u == 0]
 3
+*LinLam> experimentLT (\t -> size t - size(normalize t)) 302 100
+[(24,2),(27,2),(30,7),(33,8),(36,11),(39,15),(42,7),(45,6),(48,16),(51,3),(54,8),(57,5),(60,6),(63,2),(66,1),(78,1)]
+*LinLam> experimentLT (\t -> length [u | u <- subterms t, arity u == 0]) 302 100
+[(1,37),(2,37),(3,19),(4,6),(6,1)]
 ```
 
 ## Type inference
 
 ```haskell
-*LinLam> mapM_ (\t -> let (_,tau,_) = synth t in putStrLn (prettyLT t ++ " : " ++ prettyType tau)) (allNLT 8 0)
+*LinLam> mapM_ (\t -> putStrLn (prettyLT t ++ " : " ++ prettyType (synthClosed t))) (allNLT 8 0)
 \a.a(\b.b(\c.c)) : (((((γ -> γ) -> β) -> β) -> α) -> α)
 \a.a(\b.\c.b(c)) : ((((γ -> β) -> (γ -> β)) -> α) -> α)
 \a.a(\c.\b.b(c)) : (((γ -> ((γ -> β) -> β)) -> α) -> α)
