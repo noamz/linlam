@@ -2,7 +2,7 @@ module LinLam.Core where
 
 import Data.List
 import Data.Maybe
-import Data.MemoCombinators as Memo
+import qualified Data.MemoCombinators as Memo
 
 import Control.Monad.State
 import Control.Monad.Identity
@@ -98,7 +98,7 @@ fresh ts = 1 + maximum (-1 : concatMap support ts)
 --   list of triples ([xs],n,t), where t is a term with free variables xs
 --   and support of variables [0..n].
 gentm :: ([Int] -> [(Int,[Int])]) -> Bool -> Bool -> Int -> Int -> [([Int],Int,LT)]
-gentm pick bridgeless normal = Memo.memo2 integral integral gen'
+gentm pick bridgeless normal = Memo.memo2 Memo.integral Memo.integral gen'
   where
     gen = gentm pick bridgeless normal
     gen' n k
@@ -285,6 +285,14 @@ betaLE t1 t2 = case compare (size t1) (size t2) of
   GT -> let n = size t2 in
         t2 `elem` (until (\ts -> null ts || size (head ts) == n) (foldr union [] . map beta) [t1])
 
+-- computes levels of the beta reduction graph of a term
+betaLevels :: LT -> [[LT]]
+betaLevels t = [t] : go (beta t)
+  where
+    go :: [LT] -> [[LT]]
+    go [] = []
+    go us = us : go (foldr union [] (map beta us))
+
 -- focus on all possible eta-redices subterms
 focusEta :: LT -> [(LTdot,LT)]
 focusEta t = 
@@ -321,3 +329,10 @@ isBridgeless t = go t (\_ -> True)
     go (V x)   cont = cont 1
     go (A t u) cont = go t (\k1 -> go u (\k2 -> cont (k1+k2)))
     go (L x t) cont = go t (\k1 -> if k1 > 1 then cont (k1-1) else False)
+
+-- focus on the (osensibly unique) occurrence(s) of a given free variable 
+focusVar :: LT -> Int -> [LTdot]
+focusVar (V y) x     = [Hole | x == y]
+focusVar (A t1 t2) x = [A'1 k t2 | k <- focusVar t1 x] ++
+                       [A'2 t1 k | k <- focusVar t2 x]
+focusVar (L y t1) x  = [L' y k | y /= x, k <- focusVar t1 x]
