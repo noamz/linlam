@@ -10,7 +10,8 @@ import LinLam.Core as LL
 import LinLam.Pretty as LLP
 import LinLam.Typing as LLT
 
-import LinLam.Diagrams.Tree
+import LinLam.OpTree
+import LinLam.Diagrams.OpTree
 import LinLam.Diagrams.Matching
 import LinLam.Diagrams.Grid
 
@@ -85,16 +86,39 @@ typeSpec = ltSpec { ld = dld }
     -- dld (Neg x) = (text' 0.1 (LLP.prettyTVar x) # fc white) `atop` (square 0.2 # lwL 0.05 # lc black # fc purple)
     dld (Neg x) = square 0.2 # lwL 0.05 # lc black # fc purple
 
+typeSpec' :: DiagSpec XType NType
+typeSpec' = ltSpec { ld = scale 2 . dld, rd = drd }
+  where
+    dld :: XType -> Diagram B
+    dld (Pos x) = (text' 0.1 (LLP.prettyTVar x) # fc black) `atop` (square 0.2 # lwL 0.05 # lc black # fc gold)
+    dld (Neg x) = (text' 0.1 (LLP.prettyTVar x) # fc white) `atop` (square 0.2 # lwL 0.05 # lc black # fc purple)
+    drd :: Diagram B
+    drd = square 0.2 # lwL 0.05 # lc black # fc brown
+
+tdiagLT :: LT -> Diagram B
+tdiagLT t = matchingDiag [] (lower ++ concat upper ++ concat cfringe) (hsep 2 ([droot] ++ [dx | dx <- dxs] ++ dcuts)) # centerY
+  where
+    typeSpec180 = typeSpec' { ld = rotate (1/2 @@ turn) . ld typeSpec' }
+    (gamma, tau, xi) = synth t
+    (droot,lower) = diagTree' typeSpec' "" (posOpTree tau)
+    (dxs,upper) = unzip (map (\(x,sigma) -> diagTree' typeSpec' (show x) (negOpTree sigma)) gamma)
+    (dcuts, cfringe) = unzip (map (\(i,(sigma,tau)) -> let (d1,fringe1) = diagTree' typeSpec' ("cutP" ++ show i) (posOpTree sigma) in let (d2,fringe2) = diagTree' typeSpec' ("cutN" ++ show i) (negOpTree tau) in (matchingDiag [("rootcutP" ++ show i,()), ("rootcutN" ++ show i,())] [] (hsep 2 [d1, d2]), fringe1 ++ fringe2)) (zip [0..] xi))
+
 tdiagNLT :: LT -> Diagram B
 tdiagNLT t = matchingDiag (concatMap reverse upper) lower (vsep (max (height droot) (sum [width dx | dx <- dxs])) [hsep 1 [rotate (1/2 @@ turn) dx # alignT | dx <- dxs] # centerX, droot # centerX]) # centerY
   where
     (gamma, tau, xi) = synth t
     (droot,lower) = diagTree' typeSpec "" (posOpTree tau)
     (dxs,upper) = unzip (map (\(x,sigma) -> diagTree' (typeSpec { ld = rotate (1/2 @@ turn) . ld typeSpec }) (show x) (negOpTree sigma)) gamma)
+   
 
 tdiagNLT' t = vsep 1 [text' 1 (intercalate " , " (map (LLP.prettyType . snd) gamma)) # centerX, tdiagNLT t # centerX, text' 1 (LLP.prettyType tau) # centerX] # centerXY # pad 1.1
   where
     (gamma, tau, xi) = synth t
+
+trenderLTs :: [LT] -> String -> IO ()
+trenderLTs ts basename = do
+  renderPretty (basename ++ ".svg") (mkWidth 2048) (gridDiagrams [tdiagLT t | t <- ts] # centerXY # pad 1.1)
 
 trenderNLTs :: [LT] -> String -> IO ()
 trenderNLTs ts basename = do
