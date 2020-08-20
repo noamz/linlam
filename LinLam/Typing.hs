@@ -84,6 +84,11 @@ synth t = (gamma, tau, straints xi)
   where
     ((gamma, tau), xi) = runState (infer t) (Straints { tvars = 0, straints = [] })
 
+synthClosed :: LT -> Type
+synthClosed t = if arity t > 0 then error "synthClosed: term not closed" else tau
+  where
+    (_, tau, _) = synth t
+
 choose :: (a -> Bool) -> [a] -> [(a,[a])]
 choose p []     = []
 choose p (a:as) = [(a,as) | p a] ++ [(b,a:bs) | (b,bs) <- choose p as]
