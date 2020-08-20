@@ -17,10 +17,16 @@ prettyLT (A t1 t2)
   | otherwise = prettyLT t1 ++ paren (prettyLT t2)
 prettyLT (L x t1) = "\\" ++ (varnames !! x) ++ "." ++ prettyLT t1
 
+prettyLTc :: LTc -> String
 prettyLTc = prettyLT . snd
 
 printLT  = putStrLn . prettyLT
 printLTc = putStrLn . prettyLTc
+
+printLTs :: [LT] -> IO ()
+printLTs  = mapM_ printLT
+printLTcs :: [LTc] -> IO ()
+printLTcs = mapM_ printLTc
 
 prettyTVar :: Int -> String
 prettyTVar i
