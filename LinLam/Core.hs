@@ -11,7 +11,7 @@ import qualified Permutations as P
 
 -- datatype of linear lambda terms
 data LT = V Int | A LT LT | L Int LT
-  deriving (Show)
+  deriving (Show,Read)
 -- note that the datatype does not exclude "pseudoterms", i.e., ill-scoped
 -- terms like A (V 0) (L 0 (L 1 (V 1))) (representing "a(\a.\b.b)")
 
@@ -150,9 +150,25 @@ alphaEq (A t1 u1) (A t2 u2) = alphaEq t1 t2 && alphaEq u1 u2
 alphaEq (L x1 t1) (L x2 t2) = alphaEq t1 (swapname (x2,x1) t2)
 alphaEq _         _         = False
 
+-- compares t1 and t2 lexicographically up to alpha equivalence, with an ordering where V < A < L
+alphaLE :: LT -> LT -> Ordering
+alphaLE (V x1)    (V x2)    = compare x1 x2
+alphaLE (A t1 u1) (A t2 u2) = case alphaLE t1 t2 of
+                                LT -> LT
+                                GT -> GT
+                                EQ -> alphaLE u1 u2
+alphaLE (L x1 t1) (L x2 t2) = alphaLE t1 (swapname (x2,x1) t2)
+alphaLE (V _)     _         = LT
+alphaLE (A _ _)   (V _)     = GT
+alphaLE (A _ _)   _         = LT
+alphaLE (L _ _)   _         = GT
+
 instance Eq LT where
   t1 == t2 = alphaEq t1 t2
 
+instance Ord LT where
+  compare t1 t2 = alphaLE t1 t2
+  
 -- use a canonical naming scheme for the variables in a term, with a
 -- distinct name for each occurrence
 canonify :: LT -> LT
