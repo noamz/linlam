@@ -7,6 +7,7 @@ import Data.Maybe
 
 -- an operadic tree can have both leaves and nodes.
 data OpTree l n = Leaf l | Node n [OpTree l n]
+  deriving (Show,Eq)
 -- the nodes are interpreted as atomic operations which can be plugged
 -- together to form composite operations, while the leaves are interpreted
 -- as the global inputs to the tree seen as a composite operation.
