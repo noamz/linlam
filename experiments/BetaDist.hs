@@ -5,4 +5,4 @@ import LinLam
 import LinLam.Core
 import LinLam.Random
 
-main = mainExperiment (\t -> size t - size (normalize t))
+main = mainExperiment (\t -> (size t - size (normalize t)) `div` 3)
