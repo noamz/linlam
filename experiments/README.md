@@ -32,7 +32,7 @@ $ cat data
 [(0,174),(1,190),(2,90),(3,35),(4,8),(5,3)]
 ```
 
-The resulting samples can be processed using the simple [topy.sh](process.sh) script to produce something suitable as input to Python:
+The resulting samples can be processed using the simple [topy.sh](topy.sh) script to produce something suitable as input to Python:
 ```console
 $ ./topy.sh data
 data = [] \
