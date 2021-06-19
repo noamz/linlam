@@ -2,11 +2,6 @@
 
 A collection of Haskell routines for generating, normalizing, typing, diagrammifying, and otherwise playing with linear lambda terms.
 
-# Some related tools
-
-* George Kaye's [λ-term visualiser](https://www.georgejkaye.com/lambda-visualiser/visualiser.html) and [gallery](https://www.georgejkaye.com/lambda-visualiser/gallery)
-* Jason Reed's [Interactive Lambda Maps Toy](https://jcreedcmu.github.io/demo/lambda-map-drawer/public/index.html)
-
 # Dependencies
 
 * [data-memocombinators](https://hackage.haskell.org/package/data-memocombinators) (for term generation)
@@ -17,6 +12,7 @@ A collection of Haskell routines for generating, normalizing, typing, diagrammif
 
 Not much documentation on the library for now!
 However, you can see the example sessions below for illustrations of how to use the library to do experimental lambda calculus.
+Also, please have a look in the [experiments](experiments/README.md) directory, which contains some standalone compilable experiments.
 
 For more background, you may also have a look at some of the following papers:
 
@@ -138,6 +134,11 @@ Generate a random one-variable-open bridgeless term of size 451, normalize it, a
 *LinLam> trenderNLT (normalize t) "diagrams/randomnlt"
 ```
 ![randomnlt](diagrams/randomnlt.svg)
+
+# Some related tools
+
+* George Kaye's [λ-term visualiser](https://www.georgejkaye.com/lambda-visualiser/visualiser.html) and [gallery](https://www.georgejkaye.com/lambda-visualiser/gallery)
+* Jason Reed's [Interactive Lambda Maps Toy](https://jcreedcmu.github.io/demo/lambda-map-drawer/public/index.html)
 
 # License
 
