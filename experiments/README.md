@@ -14,7 +14,7 @@ $ ghc -i/path/to/linlam -O2 ClosedSubterms
 
 GHC has some facilities for parallelization but not much is done automatically by the compiler AFAICT.
 On the other hand, the [GNU Parallel](https://www.gnu.org/software/parallel/) shell tool makes it easy to run multiple processes in parallel, which can be useful if you have a multicore processor.
-Here's an example of using `parallel` to run 10 instances of the `ClosedSubterms` program, each of which generates 500 linear terms of size 3*100+2 and outputs a histogram.
+Here's an example of using `parallel` to run 8 instances of the `ClosedSubterms` program, each of which generates 500 linear terms of size 3*100+2 and outputs a histogram.
 ```console
 $ (for i in {1..8} ; do echo ; done) | parallel ./ClosedSubterms 100 500 > data
 ```
