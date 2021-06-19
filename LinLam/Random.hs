@@ -1,3 +1,6 @@
+-- Various routines for random generation of linear lambda terms.
+-- Unless otherwise stated, "random" below always means that we generate
+-- a uniformly random object of a given size.
 module LinLam.Random where
 
 import Data.List
@@ -7,6 +10,7 @@ import qualified Data.Set as Set
 import Control.Monad
 
 import System.Random
+import System.Environment
 import qualified System.Random.Shuffle as RG
 
 import LinLam.Core
@@ -65,6 +69,10 @@ randomLT n = do
   let (t, _) = toLT m (root m) Set.empty Set.empty
   return (canonify t)
 
+-- return a list of random closed linear lambda terms of size n
+randomLTs :: Int -> Int -> IO [LT]
+randomLTs n p = mapM (\_ -> randomLT n) [1..p]
+
 -- return a random 1-variable-open bridgeless linear lambda term of size n
 randomBLT :: Int -> IO LT
 randomBLT n = do
@@ -94,3 +102,37 @@ experimentBLT f n p = do
   let r = randomBLT n
   ts <- sequence (replicate p r)
   return $ histogram (map f ts)
+
+-- return the first and second moments of a distribution
+moments :: Fractional a => [(a,Int)] -> (a,a)
+moments xks = (mean,variance)
+  where
+    n = fromIntegral $ sum [k | (x,k) <- xks]
+    mean = sum [x*fromIntegral(k) | (x,k) <- xks] / n
+    variance = sum [(x-mean)*(x-mean)*fromIntegral(k) | (x,k) <- xks] / n
+
+-- Wrapper building a top-level main function from an experiment.
+-- The compiled program takes the size and number of trials as arguments,
+-- and then outputs a histogram of the resulting distribution (and optionally
+-- the mean and variance).
+mainExperiment :: (LT -> Int) -> IO ()
+mainExperiment exp = do
+  name <- getProgName
+  args <- getArgs
+  if length args < 2 then
+    do
+      putStrLn ("Usage: " ++ name ++ " <size> <trials> [moments?]")
+      fail "not enough arguments"
+  else
+    do
+      let n = read (args !! 0)
+      let p = read (args !! 1)
+      let m = if length args > 2 then read (args !! 2) else False
+      hist <- experimentLT exp (3*n+2) p
+      putStrLn (show hist)
+      if m then do
+         let (mean,variance) = moments [(fromIntegral x,k) | (x,k) <- hist]
+         putStrLn ("mean: " ++ show mean)
+         putStrLn ("variance: " ++ show variance)
+         return ()
+      else return ()
