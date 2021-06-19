@@ -12,7 +12,7 @@ A collection of Haskell routines for generating, normalizing, typing, diagrammif
 
 Not much documentation on the library for now!
 However, you can see the example sessions below for illustrations of how to use the library to do experimental lambda calculus.
-Also, please have a look in the [experiments](experiments/README.md) directory, which contains some standalone compilable experiments.
+Also, please have a look in the [experiments](experiments) directory, which contains some standalone compilable experiments.
 
 For more background, you may also have a look at some of the following papers:
 
