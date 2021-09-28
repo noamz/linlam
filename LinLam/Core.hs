@@ -236,6 +236,16 @@ plug (A'1 k t2) u = A (plug k u) t2
 plug (A'2 t1 k) u = A t1 (plug k u)
 plug (L' x k)   u = L x (plug k u)
 
+-- sometimes we want to reverse a context inside-out
+revcxt :: LTdot -> LTdot
+revcxt k = revapp k Hole
+  where
+    revapp :: LTdot -> LTdot -> LTdot
+    revapp Hole      k' = k'
+    revapp (A'1 k t) k' = revapp k (A'1 k' t)
+    revapp (A'2 t k) k' = revapp k (A'2 t k')
+    revapp (L' x k)  k' = revapp k (L' x k')
+
 -- focus on all possible subterms
 focus :: LT -> [(LTdot,LT)]
 focus t = (Hole,t) :
