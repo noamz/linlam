@@ -81,37 +81,35 @@ randomBLT n = do
     L x u -> if isBridgeless u then return u else randomBLT n
     _     -> randomBLT n
 
--- sort date to produce a histogram
-histogram :: Ord a => [a] -> [(a,Int)]
-histogram xs = map (\ys -> (head ys, length ys)) $ group $ sort xs
-
 -- given a statistic f of linear terms,
 -- generate p closed terms of size n
--- and return the resulting histogram
-experimentLT :: Ord a => (LT -> a) -> Int -> Int -> IO [(a,Int)]
+-- and return the result of evaluating f
+experimentLT :: (LT -> a) -> Int -> Int -> IO [a]
 experimentLT f n p = do
-  let r = randomLT n
-  ts <- sequence (replicate p r)
-  return $ histogram (map f ts)
+  ts <- sequence (replicate p (randomLT n))
+  return $ map f ts
 
 -- given a statistic f of bridgeless linear terms,
 -- generate p 1-variable-open terms of size n
--- and return the resulting histogram
-experimentBLT :: Ord a => (LT -> a) -> Int -> Int -> IO [(a,Int)]
+-- and return the result of evaluating f
+experimentBLT :: (LT -> a) -> Int -> Int -> IO [a]
 experimentBLT f n p = do
-  let r = randomBLT n
-  ts <- sequence (replicate p r)
-  return $ histogram (map f ts)
+  ts <- sequence (replicate p (randomBLT n))
+  return $ map f ts
+
+-- sort data to produce a histogram
+histogram :: Ord a => [a] -> [(a,Int)]
+histogram xs = map (\ys -> (head ys, length ys)) $ group $ sort xs
 
 -- return the first and second moments of a distribution
-moments :: Fractional a => [(a,Int)] -> (a,a)
-moments xks = (mean,variance)
+moments :: Fractional a => [a] -> (a,a)
+moments ys = (mean,variance)
   where
-    n = fromIntegral $ sum [k | (x,k) <- xks]
-    mean = sum [x*fromIntegral(k) | (x,k) <- xks] / n
-    variance = sum [(x-mean)*(x-mean)*fromIntegral(k) | (x,k) <- xks] / n
+    n = fromIntegral $ length ys
+    mean = sum ys / n
+    variance = sum [(y-mean)*(y-mean) | y <- ys] / n
 
--- Wrapper building a top-level main function from an experiment.
+-- Wrapper building a top-level main function from an Int-valued experiment.
 -- The compiled program takes the size and number of trials as arguments,
 -- and then outputs a histogram of the resulting distribution (and optionally
 -- the mean and variance).
@@ -128,10 +126,35 @@ mainExperiment exp = do
       let n = read (args !! 0)
       let p = read (args !! 1)
       let m = if length args > 2 then read (args !! 2) else False
-      hist <- experimentLT exp (3*n+2) p
-      putStrLn (show hist)
+      ys <- experimentLT exp (3*n+2) p
+      putStrLn (show (histogram ys))
       if m then do
-         let (mean,variance) = moments [(fromIntegral x,k) | (x,k) <- hist]
+         let (mean,variance) = moments (map fromIntegral ys)
+         putStrLn ("mean: " ++ show mean)
+         putStrLn ("variance: " ++ show variance)
+         return ()
+      else return ()
+
+-- Wrapper building a top-level main function from a float-valued experiment.
+-- The compiled program takes the size and number of trials as arguments,
+-- and then outputs the experimental data together with its mean and variance.
+mainExperiment' :: (Show a,Fractional a) => (LT -> a) -> IO ()
+mainExperiment' exp = do
+  name <- getProgName
+  args <- getArgs
+  if length args < 2 then
+    do
+      putStrLn ("Usage: " ++ name ++ " <size> <trials> [moments?]")
+      fail "not enough arguments"
+  else
+    do
+      let n = read (args !! 0)
+      let p = read (args !! 1)
+      let m = if length args > 2 then read (args !! 2) else False
+      ys <- experimentLT exp (3*n+2) p
+      putStrLn (show ys)
+      if m then do
+         let (mean,variance) = moments ys
          putStrLn ("mean: " ++ show mean)
          putStrLn ("variance: " ++ show variance)
          return ()

@@ -75,7 +75,7 @@ L 0 (V 0)
 245
 *LinLam> size t - size (normalize t)
 57
-*LinLam> experimentLT (\t -> size t - size(normalize t)) 302 100
+*LinLam> histogram <$> experimentLT (\t -> size t - size(normalize t)) 302 100
 [(24,2),(27,2),(30,7),(33,8),(36,11),(39,15),(42,7),(45,6),(48,16),(51,3),(54,8),(57,5),(60,6),(63,2),(66,1),(78,1)]
 ```
 
