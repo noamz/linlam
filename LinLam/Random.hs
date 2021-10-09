@@ -11,6 +11,7 @@ import Control.Monad
 
 import System.Random
 import System.Environment
+import System.Exit
 import qualified System.Random.Shuffle as RG
 
 import LinLam.Core
@@ -117,23 +118,18 @@ mainExperiment :: (LT -> Int) -> IO ()
 mainExperiment exp = do
   name <- getProgName
   args <- getArgs
-  if length args < 2 then
-    do
-      putStrLn ("Usage: " ++ name ++ " <size> <trials> [moments?]")
-      fail "not enough arguments"
-  else
-    do
-      let n = read (args !! 0)
-      let p = read (args !! 1)
-      let m = if length args > 2 then read (args !! 2) else False
-      ys <- experimentLT exp (3*n+2) p
-      putStrLn (show (histogram ys))
-      if m then do
-         let (mean,variance) = moments (map fromIntegral ys)
-         putStrLn ("mean: " ++ show mean)
-         putStrLn ("variance: " ++ show variance)
-         return ()
-      else return ()
+  unless (length args >= 2) $ do
+    putStrLn ("Usage: " ++ name ++ " <size> <trials> [moments?]")
+    exitFailure
+  let n = read (args !! 0)
+  let p = read (args !! 1)
+  let m = if length args > 2 then read (args !! 2) else False
+  ys <- experimentLT exp (3*n+2) p
+  putStrLn (show (histogram ys))
+  when m $ do
+    let (mean,variance) = moments (map fromIntegral ys)
+    putStrLn ("mean: " ++ show mean)
+    putStrLn ("variance: " ++ show variance)
 
 -- Wrapper building a top-level main function from a float-valued experiment.
 -- The compiled program takes the size and number of trials as arguments,
@@ -142,20 +138,15 @@ mainExperiment' :: (Show a,Fractional a) => (LT -> a) -> IO ()
 mainExperiment' exp = do
   name <- getProgName
   args <- getArgs
-  if length args < 2 then
-    do
-      putStrLn ("Usage: " ++ name ++ " <size> <trials> [moments?]")
-      fail "not enough arguments"
-  else
-    do
-      let n = read (args !! 0)
-      let p = read (args !! 1)
-      let m = if length args > 2 then read (args !! 2) else False
-      ys <- experimentLT exp (3*n+2) p
-      putStrLn (show ys)
-      if m then do
-         let (mean,variance) = moments ys
-         putStrLn ("mean: " ++ show mean)
-         putStrLn ("variance: " ++ show variance)
-         return ()
-      else return ()
+  unless (length args >= 2) $ do
+    putStrLn ("Usage: " ++ name ++ " <size> <trials> [moments?]")
+    exitFailure
+  let n = read (args !! 0)
+  let p = read (args !! 1)
+  let m = if length args > 2 then read (args !! 2) else False
+  ys <- experimentLT exp (3*n+2) p
+  putStrLn (show ys)
+  when m $ do
+    let (mean,variance) = moments ys
+    putStrLn ("mean: " ++ show mean)
+    putStrLn ("variance: " ++ show variance)
