@@ -1,18 +1,18 @@
-# Notes on compiling and running experiments
+# Notes on compiling experiments
 
-The Haskell files in this directory are experiments that rely on the [LinLam](https://github.com/noamz/linlam) library.
-See there for dependencies that need to be installed, in addition to GHC or the [Haskell Platform](https://www.haskell.org/platform/).
+* The Haskell files in this directory are experiments based on the [LinLam](https://github.com/noamz/linlam) library.
+  They assume you have already installed LinLam, e.g., by running `cabal install --lib` from the root of the cloned LinLam repository.
 
-Once you have cloned the LinLam repository into some directory (say `/path/to/linlam`), make sure that the library is in your Haskell search path, for example by passing the flag `-i/path/to/linlam` to `ghc` or running `:set -i/path/to/linlam` in `ghci`.
+* If you have a computationally intensive experiment it is a good idea to compile your code with `ghc`, rather than interpreting it interactively with `ghci`, since it will run much faster. 
+  You should also set the `-O2` flag to turn on optimizations.
+  For example:
+  ```console
+  $ ghc -O2 ClosedSubterms
+  ```
 
-If you have a computationally intensive experiment it is a good idea to compile your code with `ghc`, rather than interpreting it interactively with `ghci`, since it will run much faster. 
-You should also set the `-O2` flag to turn on optimizations.
-Here's an example to compile [ClosedSubterms.hs](ClosedSubterms.hs):
-```console
-$ ghc -i/path/to/linlam -O2 ClosedSubterms
-```
+# Notes on running experiments
 
-GHC has some facilities for parallelization but not much is done automatically by the compiler AFAICT.
+GHC has some facilities for parallelization but not much is done automatically by the compiler, as far as I know.
 On the other hand, the [GNU Parallel](https://www.gnu.org/software/parallel/) shell tool makes it easy to run multiple processes in parallel, which can be useful if you have a multicore processor.
 Here's an example of using `parallel` to run 8 instances of the `ClosedSubterms` program, each of which generates 500 linear terms of size 3*100+2 and outputs a histogram.
 ```console
