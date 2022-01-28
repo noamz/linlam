@@ -2,11 +2,16 @@
 
 A collection of Haskell routines for generating, normalizing, typing, diagrammifying, and otherwise playing with linear lambda terms.
 
-# Dependencies
+# Installation
 
-* [data-memocombinators](https://hackage.haskell.org/package/data-memocombinators) (for term generation)
-* [diagrams](https://hackage.haskell.org/package/diagrams) (for diagram generation)
-* [random-shuffle](http://hackage.haskell.org/package/random-shuffle-0.0.4/docs/System-Random-Shuffle.html) (for random generation)
+```shell
+cabal configure
+cabal build
+cabal install --lib
+```
+
+The library has a few dependencies (including [data-memocombinators](https://hackage.haskell.org/package/data-memocombinators) for memoized term generation, [diagrams](https://hackage.haskell.org/package/diagrams) for diagram generation, and [combinat](https://hackage.haskell.org/package/combinat) for permutation generation).
+These dependencies should be (hopefully!) automatically resolved by cabal.
 
 # Documentation
 

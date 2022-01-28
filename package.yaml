@@ -1,0 +1,37 @@
+name: linlam
+version: 0.1
+synopsis: a Haskell library for experimental linear lambda calculus
+description: See README at <https://github.com/noamz/linlam>
+maintainer: Noam Zeilberger <noam.zeilberger@lix.polytechnique.fr>
+github: noamz/linlam
+category: Other
+
+extra-source-files:
+  - README.md
+  - LICENSE
+
+ghc-options: -Wall
+
+dependencies:
+  - base
+  - combinat
+  - containers
+  - data-memocombinators
+  - diagrams
+  - diagrams-svg
+  - diagrams-lib
+  - mtl
+  - random
+
+library:
+  source-dirs: src
+  exposed-modules:
+    - LinLam
+    - LinLam.Core
+    - LinLam.Typing
+    - LinLam.Pretty
+    - LinLam.Random
+    - LinLam.Maps
+    - LinLam.BCI
+    - LinLam.Diagrams
+    

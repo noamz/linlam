@@ -1,4 +1,4 @@
-module Permutations where
+module LinLam.Permutations where
 
 type Perm = [Int]
 

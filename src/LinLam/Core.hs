@@ -5,9 +5,8 @@ import Data.Maybe
 import qualified Data.MemoCombinators as Memo
 
 import Control.Monad.State
-import Control.Monad.Identity
 
-import qualified Permutations as P
+import qualified LinLam.Permutations as P
 
 -- datatype of linear lambda terms
 data LT = V Int | A LT LT | L Int LT
@@ -179,7 +178,7 @@ canonify t = t'''
     t' = foldl (\u (x,y) -> swapname (x,y) u) t (zip vs [n..])
     t'' = fst $ runState (go t') (n + length vs)
     t''' = rename (\x -> x-n) t''
-    go :: LT -> StateT Int Identity LT
+    go :: LT -> State Int LT
     go (V x)   = return (V x)
     go (L x t) = do
       n <- get

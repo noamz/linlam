@@ -1,7 +1,6 @@
 module LinLam.Typing where
 
 import Control.Monad.State
-import Control.Monad.Identity
 
 import Data.List
 import Data.Maybe
