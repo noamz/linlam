@@ -250,8 +250,8 @@ focus :: LT -> [(LTdot,LT)]
 focus t = (Hole,t) :
           case t of
             V x     -> []
-            A t1 t2 -> [(A'2 t1 k,u) | (k,u) <- focus t2] ++
-                       [(A'1 k t2,u) | (k,u) <- focus t1]
+            A t1 t2 -> [(A'1 k t2,u) | (k,u) <- focus t1] ++
+                       [(A'2 t1 k,u) | (k,u) <- focus t2]
             L x t1  -> [(L' x k,u)   | (k,u) <- focus t1]
 
 -- list of subterms
@@ -268,8 +268,8 @@ focusBeta t =
           case t of
             V x     -> []
             A t1 t2 -> [(Hole,t) | isLam t1] ++
-                       [(A'2 t1 k,u) | (k,u) <- focusBeta t2] ++
-                       [(A'1 k t2,u) | (k,u) <- focusBeta t1]
+                       [(A'1 k t2,u) | (k,u) <- focusBeta t1] ++
+                       [(A'2 t1 k,u) | (k,u) <- focusBeta t2]
             L x t1  -> [(L' x k,u) | (k,u) <- focusBeta t1]
 
 -- step of beta reduction
@@ -323,8 +323,8 @@ focusEta :: LT -> [(LTdot,LT)]
 focusEta t = 
           case t of
             V x     -> []
-            A t1 t2 -> [(A'2 t1 k,u) | (k,u) <- focusEta t2] ++
-                       [(A'1 k t2,u) | (k,u) <- focusEta t1]
+            A t1 t2 -> [(A'1 k t2,u) | (k,u) <- focusEta t1] ++
+                       [(A'2 t1 k,u) | (k,u) <- focusEta t2]
             L x t1  -> [(Hole,t) | isApp t1, let A t11 t12 = t1, t12 == V x] ++
                        [(L' x k,u) | (k,u) <- focusEta t1]
 
