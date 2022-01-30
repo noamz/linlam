@@ -122,7 +122,7 @@ thd3 (a,b,c) = c
 (.:) :: (c -> d) -> (a -> b -> c) -> (a -> b -> d)
 (.:) f g a b = f (g a b)
 
--- naming scheme: L = linear, P = planar, B = bridgeless, N = normal
+-- naming scheme: L = linear, P = planar, B = bridgeless, N = normal, lr = "LR planarity"
 allLT   = map thd3 .: gentm P.pick1 False False
 allBLT  = map thd3 .: gentm P.pick1 True  False
 allPT   = map thd3 .: gentm P.ucons False False
@@ -131,6 +131,8 @@ allNLT  = map thd3 .: gentm P.pick1 False True
 allNBLT = map thd3 .: gentm P.pick1 True  True
 allNPT  = map thd3 .: gentm P.ucons False True
 allNBPT = map thd3 .: gentm P.ucons True  True
+allNPT_lr  = map thd3 .: gentm P.usnoc False True
+allNBPT_lr = map thd3 .: gentm P.usnoc True  True
 
 -- apply a variable renaming
 rename :: (Int -> Int) -> LT -> LT

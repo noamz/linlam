@@ -24,6 +24,10 @@ ucons :: [a] -> [(a,[a])]
 ucons [] = []
 ucons (x:xs) = [(x,xs)]
 
+usnoc :: [a] -> [(a,[a])]
+usnoc [] = []
+usnoc xs = [(last xs,init xs)]
+
 -- operadic substitution of permutations
 subst :: (Perm,Int) -> Perm -> Perm
 subst (xs,i) ys = map shift ys0 ++ map (+i) xs ++ map shift ys1
