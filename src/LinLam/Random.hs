@@ -80,12 +80,27 @@ moments ys = (mean,variance)
     mean = sum ys / n
     variance = sum [(y-mean)*(y-mean) | y <- ys] / n
 
+-- Generic wrapper building a top-level main function from an experiment.
+-- The compiled program takes the size and number of trials as arguments,
+-- and then outputs a histogram of the resulting distribution.
+mainExperiment_generic :: (Show a,Ord a) => (LT -> a) -> IO ()
+mainExperiment_generic exp = do
+  name <- getProgName
+  args <- getArgs
+  unless (length args == 2) $ do
+    putStrLn ("Usage: " ++ name ++ " <size> <trials>")
+    exitFailure
+  let n = read (args !! 0)
+  let p = read (args !! 1)
+  ys <- experimentLT exp (3*n+2) p
+  putStrLn (show (histogram ys))
+
 -- Wrapper building a top-level main function from an Int-valued experiment.
 -- The compiled program takes the size and number of trials as arguments,
 -- and then outputs a histogram of the resulting distribution (and optionally
 -- the mean and variance).
-mainExperiment :: (LT -> Int) -> IO ()
-mainExperiment exp = do
+mainExperiment_int :: (LT -> Int) -> IO ()
+mainExperiment_int exp = do
   name <- getProgName
   args <- getArgs
   unless (length args >= 2) $ do
@@ -101,11 +116,13 @@ mainExperiment exp = do
     putStrLn ("mean: " ++ show mean)
     putStrLn ("variance: " ++ show variance)
 
+mainExperiment = mainExperiment_int
+
 -- Wrapper building a top-level main function from a float-valued experiment.
 -- The compiled program takes the size and number of trials as arguments,
 -- and then outputs the experimental data together with its mean and variance.
-mainExperiment' :: (Show a,Fractional a) => (LT -> a) -> IO ()
-mainExperiment' exp = do
+mainExperiment_float :: (Show a,Fractional a) => (LT -> a) -> IO ()
+mainExperiment_float exp = do
   name <- getProgName
   args <- getArgs
   unless (length args >= 2) $ do
@@ -120,3 +137,5 @@ mainExperiment' exp = do
     let (mean,variance) = moments ys
     putStrLn ("mean: " ++ show mean)
     putStrLn ("variance: " ++ show variance)
+
+mainExperiment' = mainExperiment_float
