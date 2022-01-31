@@ -4,7 +4,6 @@
 -- For medium-sized terms and a large number of experiments, the result should
 -- approximate a Poisson distribution, see https://arxiv.org/abs/2106.08291
 
-import LinLam
 import LinLam.Core
 import LinLam.Random
  

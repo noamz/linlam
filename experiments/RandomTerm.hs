@@ -1,7 +1,5 @@
 -- generate and print some random linear terms
 
-import LinLam
-import LinLam.Core
 import LinLam.Random
 import LinLam.Pretty
 
