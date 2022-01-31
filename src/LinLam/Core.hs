@@ -291,6 +291,10 @@ beta' t = do
 isNormal :: LT -> Bool
 isNormal t = null (beta t)
 
+-- test if "neutral" (= beta normal and not a lambda)
+isNeutral :: LT -> Bool
+isNeutral t = isNormal t && not (isLam t)
+
 -- normalize a term
 normalize :: LT -> LT
 normalize t = until isNormal (head . beta) t

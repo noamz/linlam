@@ -1,4 +1,4 @@
-module LinLam.Maps where
+module LinLam.Cartes where
 
 import Data.List
 import Data.Maybe
@@ -18,7 +18,7 @@ data Carte = Carte { ndarts :: Int, sigma :: Perm, alpha :: Perm }
 
 -- compute face permutation of a map
 phi :: Carte -> Perm
-phi m = CP.inversePermutation (CP.multiplyPermutation (sigma m) (alpha m))
+phi m = CP.inversePermutation (CP.multiplyPermutation (alpha m) (sigma m))
 
 -- we always consider 1 as the root dart
 root :: Carte -> Int

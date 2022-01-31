@@ -14,7 +14,7 @@ import System.Environment
 import System.Exit
 
 import LinLam.Core
-import LinLam.Maps
+import LinLam.Cartes
 
 -- convert a rooted 3-valent map to a linear lambda term
 toLT :: Carte -> Int -> Set.Set Int -> Set.Set Int -> (LT, Set.Set Int)

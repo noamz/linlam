@@ -29,9 +29,10 @@ library
       LinLam.Core
       LinLam.Typing
       LinLam.Pretty
-      LinLam.Random
-      LinLam.Maps
+      LinLam.Cartes
       LinLam.BCI
+      LinLam.Random
+      LinLam.Tutte
       LinLam.Diagrams
   other-modules:
       LinLam.Diagrams.Grid
