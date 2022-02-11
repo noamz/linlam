@@ -30,64 +30,57 @@ For more background, you may also have a look at some of the following papers:
 ## Enumerating some terms, printing and normalizing them
 
 ```haskell
-Prelude> :load LinLam
-[ 1 of 10] Compiling Permutations     ( Permutations.hs, interpreted )
-[ 2 of 10] Compiling LinLam.Diagrams.Matching ( LinLam/Diagrams/Matching.hs, interpreted )
-[ 3 of 10] Compiling LinLam.Diagrams.Tree ( LinLam/Diagrams/Tree.hs, interpreted )
-[ 4 of 10] Compiling LinLam.Diagrams.Grid ( LinLam/Diagrams/Grid.hs, interpreted )
-[ 5 of 10] Compiling LinLam.Core      ( LinLam/Core.hs, interpreted )
-[ 6 of 10] Compiling LinLam.Random    ( LinLam/Random.hs, interpreted )
-[ 7 of 10] Compiling LinLam.Typing    ( LinLam/Typing.hs, interpreted )
-[ 8 of 10] Compiling LinLam.Pretty    ( LinLam/Pretty.hs, interpreted )
-[ 9 of 10] Compiling LinLam.Diagrams  ( LinLam/Diagrams.hs, interpreted )
-[10 of 10] Compiling LinLam           ( LinLam.hs, interpreted )
-Ok, modules loaded: LinLam, LinLam.Core, LinLam.Diagrams, LinLam.Diagrams.Grid, LinLam.Diagrams.Matching, LinLam.Diagrams.Tree, LinLam.Pretty, LinLam.Random, LinLam.Typing, Permutations.
-*LinLam> allLT 5 0
+Prelude> import LinLam
+Prelude LinLam> allLT 5 0
 [A (L 0 (V 0)) (L 1 (V 1)),L 0 (A (V 0) (L 1 (V 1))),L 1 (A (L 0 (V 0)) (V 1)),L 0 (L 1 (A (V 0) (V 1))),L 1 (L 0 (A (V 0) (V 1)))]
-*LinLam> printLTs (allLT 5 0)
+Prelude LinLam> printLTs (allLT 5 0)
 (\a.a)(\b.b)
 \a.a(\b.b)
 \b.(\a.a)(b)
 \a.\b.a(b)
 \b.\a.a(b)
-*LinLam> allPT 5 0
-[A (L 0 (V 0)) (L 1 (V 1)),L 0 (A (V 0) (L 1 (V 1))),L 1 (A (L 0 (V 0)) (V 1)),L 0 (L 1 (A (V 0) (V 1)))]
-*LinLam> printLTs (allPT 5 0)
+Prelude LinLam> printLTs (allPT 5 0)
 (\a.a)(\b.b)
 \a.a(\b.b)
 \b.(\a.a)(b)
 \a.\b.a(b)
-*LinLam> [length (allLT (3*n+2) 0) | n <- [0..4]]
+Prelude LinLam> printLTs (allBPT 7 1)
+\b.a(\c.b(c))
+\c.(\b.a(b))(c)
+\b.\c.a(b(c))
+\b.\c.a(b)(c)
+Prelude LinLam> [length (allLT (3*n+2) 0) | n <- [0..4]]
 [1,5,60,1105,27120]
-*LinLam> [length (allPT (3*n+2) 0) | n <- [0..6]]
+Prelude LinLam> [length (allPT (3*n+2) 0) | n <- [0..6]]
 [1,4,32,336,4096,54912,786432]
-*LinLam> [length (allBPT (3*n+1) 1) | n <- [0..6]]
+Prelude LinLam> [length (allBPT (3*n+1) 1) | n <- [0..6]]
 [1,1,4,24,176,1456,13056]
-*LinLam> normalize (L 0 $ A (L 1 $ V 1) (V 0))
+Prelude LinLam> normalize (L 0 $ A (L 1 $ V 1) (V 0))
 L 0 (V 0)
-*LinLam> printLTs $ filter (betaEq (L 0 $ V 0)) (allLT 5 0)
+Prelude LinLam> printLTs $ filter (betaEq (L 0 $ V 0)) (allLT 5 0)
 (\a.a)(\b.b)
 \b.(\a.a)(b)
+Prelude LinLam> 
 ```
 
 ## Generating a random closed term and making some observations, or running a repeated experiment to generate a histogram
 
 ```haskell
-*LinLam> t <- randomLT (3*100+2)
-*LinLam> printLT t
-\a.\b.\c.\d.\e.(\f.(\g.\h.\i.\j.\k.\l.\m.(\n.\o.\p.\q.\r.\s.\t.\u.\v.\w.\x.\y.(\z.(\X0.\X1.\X2.z(g(\X3.\X4.\X5.\X6.\X7.\X8.\X9.\X10.\X11.\X12.\X13.\X14.\X15.\X16.\X17.\X18.\X19.\X20.\X21.(\X22.\X23.\X24.\X25.\X26.X6(\X27.\X28.\X29.\X30.\X31.\X32.\X33.X15(X2)(d(\X34.\X35.\X36.(\X37.\X38.X16(\X39.\X40.\X41.\X42.l(\X43.X18((\X44.\X45.\X46.c(X12(X23(X22))(\X47.\X48.X33(\X49.\X50.h(m(X29))(X50)((\X51.(\X52.X47(\X53.X13(\X54.\X55.(\X56.\X57.X32(b(s))((\X58.(\X59.(\X60.\X61.X53((\X62.\X63.\X64.X3(\X65.\X66.(\X67.X67)(X66(\X68.(\X69.n((\X70.X59(\X71.\X72.X7(X11)(X5(\X73.p(u(r)(X68))(X51)(X38(X65(X28(X37)(X43))(X64(X63(X41)))(q))(X40(X44(X24)))(X69)(X19(X4)(X56)(X52)(X27(X39))(X57(X1(X46(X60)(X17)(X55(X36(X70)(X73))))))(X71)(X72(X35))(X21)))(X61)(X48)))(w)(X62)(X20))(X54))(X58)(X30)))(X45)))))(X42)))(X25))(X49))(y)(X8)))(v))))(x))(f)(X26(X31)(X9)))(i))))(t)(X10))(X14)))))(X34)))))(X0))))(k))(o))(e(j)))(a))(\X74.X74)
-*LinLam> size (normalize t)
-245
-*LinLam> size t - size (normalize t)
-57
-*LinLam> histogram <$> experimentLT (\t -> size t - size(normalize t)) 302 100
-[(24,2),(27,2),(30,7),(33,8),(36,11),(39,15),(42,7),(45,6),(48,16),(51,3),(54,8),(57,5),(60,6),(63,2),(66,1),(78,1)]
+Prelude LinLam> t <- randomLT (3*100+2)
+Prelude LinLam> printLT t
+\a.\b.\c.\d.\e.\f.\g.\h.\i.\j.\k.\l.\m.\n.\o.\p.\q.\r.\s.\t.\u.(\v.\w.\x.\y.\z.\X0.\X1.\X2.\X3.\X4.\X5.\X6.\X7.\X8.\X9.X6(\X10.\X11.\X12.e(p(\X13.\X14.\X15.\X16.\X17.(\X18.\X19.\X20.j(\X21.\X22.\X23.\X24.\X25.\X26.\X27.\X28.\X29.\X30.\X31.\X32.\X33.\X34.g((\X35.X33(\X36.\X37.\X38.\X39.\X40.\X41.\X42.\X43.d(\X44.\X45.\X46.(\X47.\X48.\X49.X32(r)(\X50.X41(X20(\X51.\X52.\X53.(\X54.\X55.\X56.X23(\X57.\X58.\X59.\X60.(\X61.X61(v))(X42)(X60(n))(X36(X58)(X55)(o)(\X62.X13(\X63.\X64.y(X38(X49(X57)(X26(X48)(h(\X65.X5(X34)(a(\X66.X43(X29(X10))(q)(X65)((\X67.(\X68.w(X37)(c(X56(X3(X15))(X18)(X67)(X39((\X69.(\X70.\X71.X59(X63((\X72.\X73.(\X74.X35(X74)(X68))(X54)(X73(X44)(X22(X19))(X72)(X27(X0))(X47)))(X52(X50)(m)(X25)(f(X2(X4)(X69)(k)(x(X45(z))(X21)(X24)))(X62(X46(X1)))(X12))(X70))))(X8(X71)))(i(X53)))(u))))))(X64))(X14(X66)))))))))(X16(X51)))))(X9))(X31)(X40)))(l)(X11)))))(t(s(X30))))(X28)))(X17))))(X7)))))(b)
+Prelude LinLam> size (normalize t)
+263
+Prelude LinLam> size t - size (normalize t)
+39
+Prelude LinLam> histogram <$> experimentLT (\t -> size t - size(normalize t)) 302 100
+[(18,1),(21,2),(24,5),(27,3),(30,1),(33,7),(36,8),(39,14),(42,11),(45,7),(48,11),(51,6),(54,11),(57,5),(60,2),(63,1),(66,2),(69,1),(75,1),(78,1)]
 ```
 
 ## Type inference
 
 ```haskell
-*LinLam> mapM_ (\t -> putStrLn (prettyLT t ++ " : " ++ prettyType (synthClosed t))) (allNLT 8 0)
+Prelude LinLam> mapM_ (\t -> putStrLn (prettyLT t ++ " : " ++ prettyType (synthClosed t))) (allNLT 8 0)
 \a.a(\b.b(\c.c)) : (((((γ -> γ) -> β) -> β) -> α) -> α)
 \a.a(\b.\c.b(c)) : ((((γ -> β) -> (γ -> β)) -> α) -> α)
 \a.a(\c.\b.b(c)) : (((γ -> ((γ -> β) -> β)) -> α) -> α)
@@ -121,22 +114,22 @@ L 0 (V 0)
 Generate a table of string diagrams (λ-graphs) representing the term structure of all closed planar terms of size 8 (in a file named `diagrams/pt8,0.svg`):
 
 ```haskell
-*LinLam> renderLTs' (allPT 8 0) "diagrams/pt8,0"
+Prelude LinLam> renderLTs' (allPT 8 0) "diagrams/pt8,0"
 ```
 ![pt8,0](diagrams/pt8,0.svg)
 
 Generate a table of string diagrams (proof-nets) representing the type structure of all one-variable-open normal bridgeless terms of size 7:
 
 ```haskell
-*LinLam> trenderNLTs' (allNBLT 7 1) "diagrams/nblt7,1"
+Prelude LinLam> trenderNLTs' (allNBLT 7 1) "diagrams/nblt7,1"
 ```
 ![nblt7,1](diagrams/nblt7,1.svg)
 
 Generate a random one-variable-open bridgeless term of size 451, normalize it, and diagram its type structure (just the pure graphical diagram, without any Greek annotations):
 
 ```haskell
-*LinLam> t <- randomBLT (3*150+1)
-*LinLam> trenderNLT (normalize t) "diagrams/randomnlt"
+Prelude LinLam> t <- randomBLT (3*150+1)
+Prelude LinLam> trenderNLT (normalize t) "diagrams/randomnlt"
 ```
 ![randomnlt](diagrams/randomnlt.svg)
 
