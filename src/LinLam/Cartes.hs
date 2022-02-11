@@ -7,10 +7,10 @@ import qualified Data.Set as Set
 import System.Random
 
 import qualified Data.MemoCombinators as Memo
-import qualified Math.Combinat.Permutations as CP
+import qualified Math.Combinat.Permutations as P
 
-type Perm = CP.Permutation
-act = (CP.!!!)
+type Perm = P.Permutation
+act = (P.!!!)
 
 -- type of combinatorial maps
 data Carte = Carte { ndarts :: Int, sigma :: Perm, alpha :: Perm }
@@ -18,11 +18,15 @@ data Carte = Carte { ndarts :: Int, sigma :: Perm, alpha :: Perm }
 
 -- compute face permutation of a map
 phi :: Carte -> Perm
-phi m = CP.inversePermutation (CP.multiplyPermutation (alpha m) (sigma m))
+phi m = P.inversePermutation (P.multiplyPermutation (alpha m) (sigma m))
 
 -- we always consider 1 as the root dart
 root :: Carte -> Int
 root m = 1
+
+-- the trivial/terminal rooted map with a single dart
+trivialMap :: Carte
+trivialMap = Carte { ndarts = 1, sigma = P.toPermutation [1], alpha = P.toPermutation [1] }
 
 -- test if a map is connected
 isConnected :: Carte -> Bool
@@ -32,7 +36,7 @@ isConnected m = go Set.empty [root m]
     go s []     = Set.size s == ndarts m
     go s (d:ds)
       | Set.member d s = go s ds
-      | otherwise      = go (Set.insert d s) (alpha m CP.!!! d : sigma m CP.!!! d : ds)
+      | otherwise      = go (Set.insert d s) (alpha m P.!!! d : sigma m P.!!! d : ds)
 
 -- perform a canonical dfs traversal of a connected map
 dfsCarte :: Carte -> [Int]
@@ -42,22 +46,22 @@ dfsCarte m = go Set.empty [root m] []
     go s []     visited = reverse visited
     go s (d:ds) visited
       | Set.member d s = go s ds visited
-      | otherwise      = go (Set.insert d s) (alpha m CP.!!! d : sigma m CP.!!! d : ds) (d:visited)
+      | otherwise      = go (Set.insert d s) (alpha m P.!!! d : sigma m P.!!! d : ds) (d:visited)
 
 -- relabel a map canonically by its dfs traversal
 canonifyCarte :: Carte -> Carte
 canonifyCarte m = 
   Carte { ndarts = ndarts m, sigma = conjugate pi (sigma m), alpha = conjugate pi (alpha m) }
   where
-    pi = CP.inversePermutation $ CP.toPermutation (dfsCarte m)
+    pi = P.inversePermutation $ P.toPermutation (dfsCarte m)
 
 -- generate a random not-necessarily-connected rooted map with n edges + 1 root half-edge
 randomMap :: Int -> IO Carte
 randomMap n = do
   let ndarts = 1+2*n
   let alpha = 1 : [min (i-2*(i `mod` 2)+1) (2*n+1) | i <- [2..ndarts]]
-  sigma <- getStdRandom $ CP.randomPermutation ndarts
-  return (Carte { ndarts = ndarts, sigma = sigma, alpha = CP.toPermutation alpha })
+  sigma <- getStdRandom $ P.randomPermutation ndarts
+  return (Carte { ndarts = ndarts, sigma = sigma, alpha = P.toPermutation alpha })
 
 -- generate a random connected rooted map with n edges + 1 root half-edge
 randomMap' :: Int -> IO Carte
@@ -70,9 +74,9 @@ randomKMap :: Int -> Int -> IO Carte
 randomKMap k n = do
   let ndarts = 1+k*n
   let alpha = [min (i+2*(i `mod` 2)-1) ndarts | i <- [1..ndarts]]
-  perm <- getStdRandom $ CP.randomPermutation (ndarts-1)
-  let sigma_cycles = CP.DisjointCycles ([1] : chunksOf k (map (1+) $ CP.fromPermutation perm))
-  return (Carte { ndarts = ndarts, sigma = CP.disjointCyclesToPermutation ndarts sigma_cycles, alpha = CP.toPermutation alpha })
+  perm <- getStdRandom $ P.randomPermutation (ndarts-1)
+  let sigma_cycles = P.DisjointCycles ([1] : chunksOf k (map (1+) $ P.fromPermutation perm))
+  return (Carte { ndarts = ndarts, sigma = P.disjointCyclesToPermutation ndarts sigma_cycles, alpha = P.toPermutation alpha })
   where
     chunksOf k [] = []
     chunksOf k xs = take k xs : chunksOf k (drop k xs)
@@ -87,8 +91,8 @@ rootedMaps :: Int -> [Carte]
 rootedMaps n = do
   let ndarts = 1+2*n
   let alpha = 1 : [min (i-2*(i `mod` 2)+1) (2*n+1) | i <- [2..ndarts]]
-  sigma <- CP.permutations ndarts
-  return (Carte { ndarts = ndarts, sigma = sigma, alpha = CP.toPermutation alpha })
+  sigma <- P.permutations ndarts
+  return (Carte { ndarts = ndarts, sigma = sigma, alpha = P.toPermutation alpha })
 
 -- generate a connected rooted map with n edges + 1 root half-edge
 -- with one canonical representative per equivalence class
@@ -101,9 +105,9 @@ rootedMaps' = Memo.integral gen
 -- the function "permutationToDisjointCycles" from Math.Combinat.Permutations
 -- does this except that it omits fixed points.
 permCycles :: Perm -> [[Int]]
-permCycles pi = fixedPoints pi ++ CP.fromDisjointCycles (CP.permutationToDisjointCycles pi)
+permCycles pi = fixedPoints pi ++ P.fromDisjointCycles (P.permutationToDisjointCycles pi)
   where
-    fixedPoints pi = [[i] | i <- [1..CP.permutationSize pi], pi CP.!!! i == i]
+    fixedPoints pi = [[i] | i <- [1..P.permutationSize pi], pi P.!!! i == i]
 
 -- computes "passport" of a map = degrees of the vertices, edges, faces
 passport :: Carte -> ([Int],[Int],[Int])
@@ -121,7 +125,7 @@ euler m = nverts - nedges + nfaces
 
 -- conjugate the second permutation by the first
 conjugate :: Perm -> Perm -> Perm
-conjugate f pi = CP.productOfPermutations [f, pi, CP.inversePermutation f]
+conjugate f pi = P.productOfPermutations [f, pi, P.inversePermutation f]
 
 -- test whether two maps are equivalent up to relabelling
 carteEquiv :: Carte -> Carte -> Bool
@@ -160,8 +164,8 @@ residual alpha beta =
   -- compute cyclic decompositions of alpha and beta
   let calpha = map (\c -> (length c, c)) (permCycles alpha) in
   let cbeta = map (\c -> (length c, c)) (permCycles beta) in
-  let n = CP.permutationSize alpha in
-  map (CP.toPermutation . map snd . sort) $ match_cycles calpha cbeta
+  let n = P.permutationSize alpha in
+  map (P.toPermutation . map snd . sort) $ match_cycles calpha cbeta
 
 -- generate all n cyclic permutations of a list of length n
 cycleonce :: [a] -> [[a]]
@@ -177,4 +181,4 @@ orbit x pi = go Set.empty x
   where
     go s x
       | Set.member x s = []
-      | otherwise      = x : go (Set.insert x s) (pi CP.!!! x)
+      | otherwise      = x : go (Set.insert x s) (pi P.!!! x)

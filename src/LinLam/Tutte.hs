@@ -61,10 +61,8 @@ _test1 n = all (\t -> tutteNPTLR (nptlrTutte t) == t) (allNPT_lr (3*n+2) 0)
 
 -- interpret a tutte decomposition as a rooted planar map
 tutteCarte :: Tutte -> Carte
-tutteCarte Trivial            = Carte { ndarts = 1, sigma = P.toPermutation [1], alpha = P.toPermutation [1] }
-tutteCarte (RootBridge m1 m2) = Carte { ndarts = ndarts',
-                                        sigma = sigma',
-                                        alpha = alpha' }
+tutteCarte Trivial            = trivialMap
+tutteCarte (RootBridge m1 m2) = Carte { ndarts = ndarts', sigma = sigma', alpha = alpha' }
   where
     c1 = tutteCarte m1
     c2 = tutteCarte m2
@@ -74,9 +72,7 @@ tutteCarte (RootBridge m1 m2) = Carte { ndarts = ndarts',
     alpha'  = (P.transposition ndarts' (2,2+ndarts c1)) `P.multiplyPermutation`
               (P.toPermutation [1] `P.concatPermutations` alpha c1 `P.concatPermutations` alpha c2)
               
-tutteCarte (RootNonBridge i m1) = Carte { ndarts = ndarts',
-                                          sigma = sigma',
-                                          alpha = alpha' }
+tutteCarte (RootNonBridge i m1) = Carte { ndarts = ndarts', sigma = sigma', alpha = alpha' }
   where
     c1 = tutteCarte m1
     ndarts' = ndarts c1 + 2
