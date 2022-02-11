@@ -76,7 +76,7 @@ tutteCarte (RootNonBridge i m1) = Carte { ndarts = ndarts', sigma = sigma', alph
   where
     c1 = tutteCarte m1
     ndarts' = ndarts c1 + 2
-    rface = orbit (P.inversePermutation (sigma c1) P.!!! (root c1)) (phi c1)
+    rface = orbit (P.inversePermutation (sigma c1) P.!!! (root c1)) (P.inversePermutation (P.multiplyPermutation (alpha c1) (sigma c1)))
     perimeter = length rface
     dart = rface !! i
     alpha' = (P.transposition ndarts' (2,ndarts')) `P.multiplyPermutation`

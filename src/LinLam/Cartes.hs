@@ -18,7 +18,7 @@ data Carte = Carte { ndarts :: Int, sigma :: Perm, alpha :: Perm }
 
 -- compute face permutation of a map
 phi :: Carte -> Perm
-phi m = P.inversePermutation (P.multiplyPermutation (alpha m) (sigma m))
+phi m = P.inversePermutation (P.multiplyPermutation (sigma m) (alpha m))
 
 -- we always consider 1 as the root dart
 root :: Carte -> Int
