@@ -142,7 +142,7 @@ Generate a random one-variable-open bridgeless term of size 451, normalize it, a
 
 # Some related tools
 
-* George Kaye's [λ-term visualiser](https://www.georgejkaye.com/lambda-visualiser/visualiser.html) and [gallery](https://www.georgejkaye.com/lambda-visualiser/gallery)
+* George Kaye's [λ-term visualiser](https://www.georgejkaye.com/lamviz/) and [gallery](https://www.georgejkaye.com/lamviz/gallery)
 * Jason Reed's [Interactive Lambda Maps Toy](https://jcreedcmu.github.io/demo/lambda-map-drawer/public/index.html)
 
 # License
