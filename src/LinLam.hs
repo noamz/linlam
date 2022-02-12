@@ -4,6 +4,7 @@ module LinLam ( module LinLam.Core
               , module LinLam.Cartes
               , module LinLam.Random
               , module LinLam.Tutte
+              , module LinLam.WF
               , module LinLam.Diagrams )
 where
 
@@ -13,4 +14,5 @@ import LinLam.Pretty
 import LinLam.Cartes
 import LinLam.Random
 import LinLam.Tutte
+import LinLam.WF
 import LinLam.Diagrams

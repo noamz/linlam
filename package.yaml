@@ -34,5 +34,6 @@ library:
     - LinLam.BCI
     - LinLam.Random
     - LinLam.Tutte
+    - LinLam.WF
     - LinLam.Diagrams
     
