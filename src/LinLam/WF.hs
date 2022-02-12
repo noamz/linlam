@@ -65,12 +65,23 @@ normalToU t1 = unPi k m
 -- after removing the outermost lambdas.
 nptToMap = neutralToM . snd . unlambdas
 
--- test that the image of nptToMap is the set of rooted planar maps with n edges
-_test :: Int -> Bool
-_test n = length cs == length ts &&
-           all ((==1) . euler) cs
+-- Check that the image of nptToMap is the set of rooted planar maps with n edges
+_test3 :: Int -> Bool
+_test3 n = length ms == length ts &&
+           all ((==1) . euler) ms
   where
     ts = allNPT (3*n+2) 0
-    cs = nub $ map (canonifyCarte . nptToMap) ts
+    ms = nub $ map (canonifyCarte . nptToMap) ts
 
--- verified _test n for n <- [0..6]
+-- verified _test3 n for n <- [0..6]
+
+-- Check that the image of nptToMap on second-order terms is the set of rooted planar trees with n edges
+_test4 :: Int -> Bool
+_test4 n = length ms == length ts &&
+           all ((==1) . euler) ms &&
+           all (\m -> length (orbit (root m) (phi m)) == ndarts m) ms
+  where
+    ts = allNPT (2*n-1) n
+    ms = nub $ map (canonifyCarte . nptToMap) ts
+
+-- verified _test4 n for n <- [0..10]
