@@ -14,7 +14,7 @@ import Data.List
 
 -- A "one-corner component" (in the terminology of Fang's paper) is a
 -- rooted planar map whose root corner is the only corner of the root
--- vertex.
+-- vertex on the outer face.
 
 -- the "unPi" operation takes an integer k and a map m and constructs
 -- a one-corner component by walking k vertices along the root face
