@@ -8,7 +8,7 @@ import Data.Maybe
 import LinLam.Core
 
 data Type = TVar Int | TFn Type Type
-  deriving (Show,Eq)
+  deriving (Show,Eq,Ord)
 
 type TCtx = [(Int,Type)]
 
@@ -17,6 +17,11 @@ isTVar (TFn _ _) = False
 
 isTFn (TVar _)   = False
 isTFn (TFn _ _)  = True
+
+-- compute the order of a type
+orderType :: Type -> Int
+orderType (TVar _)  = 0
+orderType (TFn a b) = max (1 + orderType a) (orderType b)
 
 -- substitute a type for a type variable in a type
 substT :: (Int,Type) -> Type -> Type
