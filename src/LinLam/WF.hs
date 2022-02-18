@@ -11,6 +11,8 @@ import LinLam.Pretty
 import qualified Math.Combinat.Permutations as P
 
 import Data.List
+import Data.Maybe
+import qualified Data.Set as Set
 
 -- A "one-corner component" (in the terminology of Fang's paper) is a
 -- rooted planar map whose root corner is the only corner of the root
@@ -21,7 +23,7 @@ import Data.List
 -- and adding a new edge (see Fig 5 of Fang's paper)
 unPi :: Int -> Carte -> Carte
 unPi k m
-  | k == 0 && m == trivialMap = Carte { ndarts = 3, sigma = P.toPermutation [3,1,2], alpha = P.toPermutation [1,3,2] }
+  | m == trivialMap && k == 0 = loopMap
   | otherwise                 = Carte { ndarts = ndarts', sigma = sigma', alpha = alpha' }
   where
     -- the new map has one new edge = two new darts
@@ -85,3 +87,70 @@ _test4 n = length ms == length ts &&
     ms = nub $ map (canonifyCarte . nptToMap) ts
 
 -- verified _test4 n for n <- [0..10]
+
+-- Now we define the inverse bijection.
+
+-- First we define the "doPi" operation, which is inverse to unPi.  It
+-- takes a one-corner component u and returns a pair (k,m) an integer
+-- k and a map m such that u = unPi k m.
+doPi :: Carte -> (Int,Carte)
+doPi u
+  | u == loopMap = (0,trivialMap)
+  | otherwise    = (k,m)
+  where
+    -- determine the edge clockwise from the root
+    x = act (P.inversePermutation (sigma u)) (root u)
+    x' = act (alpha u) x
+    -- ...and remove it together with the original root dart
+    m = dartsDelete u [1,x] x'
+    k = head [i | i <- [0..], unPi i m `carteEquiv` u]
+
+-- Next we define inverses to neutralToM and normalToU.  mToNeutral
+-- expects a map and returns the corresponding neutral planar term,
+-- while uToNormal expects a one-corner component and returns the
+-- corresponding normal planar term.
+mToNeutral, uToNormal :: Carte -> LT
+mToNeutral m
+  | m == trivialMap = V 0
+  | otherwise       = A t1 t2
+  where
+    -- We remove the first one-corner component from the root vertex
+    root_vertex = orbit (root m) (sigma m)
+    root_face   = orbit (root m) (phi m)
+    x = root_vertex !! 1
+    x' = act (alpha m) x
+    (rv1,rv2) = break (\y -> elem y root_face) (drop 2 root_vertex)
+    y = if null rv1 then x else last rv1
+    component = dfsCarte' m [root m] (Set.fromList rv2)
+    u1 = Carte { ndarts = length component,
+                 sigma = P.toPermutation [renameBy component (if i == y then 1 else act (sigma m) i) | i <- component],
+                 alpha = P.toPermutation [renameBy component (act (alpha m) i) | i <- component] }
+    z = if null rv2 then 1 else head rv2
+    leftover = 1 : dfsCarte' m rv2 (Set.fromList component)
+    m2 = Carte { ndarts = length leftover,
+                 sigma = P.toPermutation [renameBy leftover (if i == 1 then z else act (sigma m) i) | i <- leftover],
+                 alpha = P.toPermutation [renameBy leftover (act (alpha m) i) | i <- leftover] }
+    t1 = mToNeutral m2
+    t2 = shift t1 (uToNormal u1)
+
+    renameBy :: [Int] -> Int -> Int
+    renameBy xs i = fromJust (lookup i $ zip xs [1..])
+
+uToNormal u = foldr L t [x | x <- drop k (free t)]
+  where
+    (k,m) = doPi u
+    t = mToNeutral m
+
+-- Finally we define an inverse to nptToMap by composing with closure
+mapToNPT :: Carte -> LT
+mapToNPT = closure . mToNeutral
+
+-- test that mapToNPT is left inverse to nptToMap
+_test5 :: Int -> Bool
+_test5 n = all (\t -> mapToNPT (nptToMap t) == t) (allNPT (3*n+2) 0)
+
+-- verified _test5 n for n <- [0..6]
+
+-- transport along the bijection to compute the dual of a normal planar term
+dualNPT :: LT -> LT
+dualNPT = mapToNPT . dualMap . nptToMap

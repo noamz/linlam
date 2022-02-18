@@ -9,8 +9,25 @@ import System.Random
 import qualified Data.MemoCombinators as Memo
 import qualified Math.Combinat.Permutations as P
 
+-- some routines on permutations
 type Perm = P.Permutation
 act = (P.!!!)
+
+-- orbit of an element under a permutation
+orbit :: Int -> Perm -> [Int]
+orbit x pi = go Set.empty x
+  where
+    go s x
+      | Set.member x s = []
+      | otherwise      = x : go (Set.insert x s) (pi P.!!! x)
+
+-- remove a given list of indices from a permutation
+deletePerm :: Perm -> [Int] -> Perm
+deletePerm pi ds =
+  P.toPermutation [rename (fromJust $ find (\j -> not (elem j ds)) (tail (orbit i pi) ++ [i])) | i <- ixs]
+  where
+    ixs = [1..P.permutationSize pi] \\ ds
+    rename j = fromJust (lookup j $ zip ixs [1..])
 
 -- type of combinatorial maps
 data Carte = Carte { ndarts :: Int, sigma :: Perm, alpha :: Perm }
@@ -24,9 +41,25 @@ phi m = P.inversePermutation (P.multiplyPermutation (sigma m) (alpha m))
 root :: Carte -> Int
 root m = 1
 
+-- we can reroot at another dart by applying an appropriate transposition
+reroot :: Int -> Carte -> Carte
+reroot x m = m { sigma = conjugate swap (sigma m),
+                 alpha = conjugate swap (alpha m) }
+  where
+    swap = P.transposition (ndarts m) (1,x)
+
 -- the trivial/terminal rooted map with a single dart
 trivialMap :: Carte
 trivialMap = Carte { ndarts = 1, sigma = P.toPermutation [1], alpha = P.toPermutation [1] }
+
+-- the two one-edge rooted maps
+bridgeMap, loopMap :: Carte
+bridgeMap = Carte { ndarts = 3, sigma = P.toPermutation [3,2,1], alpha = P.toPermutation [1,3,2] }
+loopMap   = Carte { ndarts = 3, sigma = P.toPermutation [3,1,2], alpha = P.toPermutation [1,3,2] }
+
+-- the dual of a map, exchanging vertices with faces
+dualMap :: Carte -> Carte
+dualMap m = m { sigma = P.inversePermutation (phi m) }
 
 -- test if a map is connected
 isConnected :: Carte -> Bool
@@ -38,15 +71,20 @@ isConnected m = go Set.empty [root m]
       | Set.member d s = go s ds
       | otherwise      = go (Set.insert d s) (alpha m P.!!! d : sigma m P.!!! d : ds)
 
--- perform a canonical dfs traversal of a connected map
-dfsCarte :: Carte -> [Int]
-dfsCarte m = go Set.empty [root m] []
+-- perform a canonical dfs traversal of a map, starting from a given
+-- list of darts, excluding some set of darts
+dfsCarte' :: Carte -> [Int] -> Set.Set Int -> [Int]
+dfsCarte' m xs s = go s xs []
   where
     go :: Set.Set Int -> [Int] -> [Int] -> [Int]
     go s []     visited = reverse visited
     go s (d:ds) visited
       | Set.member d s = go s ds visited
       | otherwise      = go (Set.insert d s) (alpha m P.!!! d : sigma m P.!!! d : ds) (d:visited)
+
+-- perform a canonical dfs traversal of a connected rooted map
+dfsCarte :: Carte -> [Int]
+dfsCarte m = dfsCarte' m [root m] Set.empty
 
 -- relabel a map canonically by its dfs traversal
 canonifyCarte :: Carte -> Carte
@@ -175,10 +213,12 @@ cycleonce xs = cycle' xs []
     cycle' [] acc = []
     cycle' (x:xs) acc = [x:xs ++ reverse acc] ++ cycle' xs (x:acc)
 
--- orbit of an element under a permutation
-orbit :: Int -> Perm -> [Int]
-orbit x pi = go Set.empty x
+-- remove a list of darts from a map while simultaneously rerooting it
+dartsDelete :: Carte -> [Int] -> Int -> Carte
+dartsDelete m ds r =
+  reroot r' $
+  Carte { ndarts = ndarts m - length ds,
+          sigma = deletePerm (sigma m) ds,
+          alpha = deletePerm (alpha m) ds }
   where
-    go s x
-      | Set.member x s = []
-      | otherwise      = x : go (Set.insert x s) (pi P.!!! x)
+    r' = fromJust (lookup r $ zip ([1..ndarts m] \\ ds) [1..])
