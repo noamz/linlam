@@ -1,6 +1,7 @@
 module LinLam ( module LinLam.Core
               , module LinLam.Typing
               , module LinLam.Pretty
+              , module LinLam.Parse
               , module LinLam.Cartes
               , module LinLam.Random
               , module LinLam.Tutte
@@ -11,6 +12,7 @@ where
 import LinLam.Core
 import LinLam.Typing
 import LinLam.Pretty
+import LinLam.Parse
 import LinLam.Cartes
 import LinLam.Random
 import LinLam.Tutte

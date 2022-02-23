@@ -10,13 +10,11 @@ cabal build
 cabal install --lib
 ```
 
-The library has a few dependencies (including [data-memocombinators](https://hackage.haskell.org/package/data-memocombinators) for memoized term generation, [diagrams](https://hackage.haskell.org/package/diagrams) for diagram generation, and [combinat](https://hackage.haskell.org/package/combinat) for permutation generation).
-These dependencies should be (hopefully!) automatically resolved by cabal.
+The library has a few dependencies, which (hopefully!) should be automatically taken care of by cabal.
 
 # Documentation
 
-Not much documentation on the library for now!
-However, you can see the example sessions below for illustrations of how to use the library to do experimental lambda calculus.
+In lieu of documentation for now, please have a look at the example interactive sessions below for illustrations of how to use the library to do experimental lambda calculus.
 Also, please have a look in the [experiments](experiments) directory, which contains some standalone compilable experiments.
 
 For more background, you may also have a look at some of the following papers:
@@ -107,6 +105,37 @@ Prelude LinLam> mapM_ (\t -> putStrLn (prettyLT t ++ " : " ++ prettyType (synthC
 \c.\a.\b.a(b)(c) : (β -> ((γ -> (β -> α)) -> (γ -> α)))
 \b.\c.\a.a(b)(c) : (γ -> (β -> ((γ -> (β -> α)) -> α)))
 \c.\b.\a.a(b)(c) : (β -> (γ -> ((γ -> (β -> α)) -> α)))
+```
+
+## Loading lambda terms from a file
+
+(See example files [bckwi.lam](terms/bckwi.lam) and [ski.lam](terms/ski.lam).)
+
+```haskell
+Prelude LinLam> ts <- readLTsFromFile "terms/bckwi.lam"
+Prelude LinLam> printLTs ts
+\a.\b.\c.a(b(c))
+\a.\b.\c.a(c)(b)
+\a.\b.a
+\a.\b.a(b)(b)
+\a.a
+Prelude LinLam> [s,k,i] <- readLTsFromFile "terms/ski.lam"
+Prelude LinLam> t = k
+Prelude LinLam> f = A s k
+Prelude LinLam> not = A (A s (A (A s i) (A k f))) (A k t)
+Prelude LinLam> or = A (A s i) (A k t)
+Prelude LinLam> betaEq (A not t) f
+True
+Prelude LinLam> betaEq (A not f) t
+True
+Prelude LinLam> betaEq (foldl A or [f,f]) f
+True
+Prelude LinLam> betaEq (foldl A or [f,t]) t
+True
+Prelude LinLam> betaEq (foldl A or [t,f]) t
+True
+Prelude LinLam> betaEq (foldl A or [t,t]) t
+True
 ```
 
 ## Making diagrams

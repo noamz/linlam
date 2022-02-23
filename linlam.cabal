@@ -29,6 +29,7 @@ library
       LinLam.Core
       LinLam.Typing
       LinLam.Pretty
+      LinLam.Parse
       LinLam.Cartes
       LinLam.BCI
       LinLam.Random
@@ -54,5 +55,6 @@ library
     , diagrams-lib
     , diagrams-svg
     , mtl
+    , parsec
     , random
   default-language: Haskell2010
