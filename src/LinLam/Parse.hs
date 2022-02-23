@@ -30,7 +30,7 @@ parseApps :: ParserLT LT
 parseApps = do
   h <- parseLT'
   skipMany (char ' ')
-  ts <- sepBy parseLT' (skipMany1 (char ' '))
+  ts <- sepBy parseLT' (skipMany (char ' '))
   return (foldl A h ts)
 
 parseVar :: ParserLT LT
