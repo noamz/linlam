@@ -1,10 +1,8 @@
 module LinLam.Parse where
 
-import Data.Char
 import Data.Maybe
 
 import LinLam.Core
-import LinLam.Typing
 
 import Text.ParserCombinators.Parsec
 import qualified Data.Map as M
@@ -16,7 +14,7 @@ parseLT = parseLam <|> parseApps
 
 parseLam :: ParserLT LT
 parseLam = do
-  char '\\'
+  _ <- char '\\'
   spaces
   vname <- manyTill alphaNum (spaces >> char '.')
   m <- getState
@@ -50,7 +48,7 @@ parseComment = char ';' >> manyTill anyChar newline
 
 parseLTs :: ParserLT [LT]
 parseLTs = do
-  many parseComment
+  _ <- many parseComment
   ts <- sepEndBy parseLT (newline >> many parseComment)
   eof
   return ts
