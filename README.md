@@ -12,23 +12,31 @@ cabal install --lib
 
 The library has a few dependencies, which (hopefully!) should be automatically taken care of by cabal.
 
-# Documentation
+# Quick start
 
-In lieu of documentation for now, please have a look at the example interactive sessions below for illustrations of how to use the library to do experimental lambda calculus.
-Also, please have a look in the [experiments](experiments) directory, which contains some standalone compilable experiments.
+Begin by opening the Haskell interpreter and importing the LinLam library:
+```
+$ ghci
+GHCi, version 8.8.4: https://www.haskell.org/ghc/  :? for help
+Prelude> import LinLam
+Prelude LinLam> 
+```
+Then try some of the example sessions below, which illustrate how to use the library to do experimental lambda calculus.
 
-For more background, you may also have a look at some of the following papers:
+Afterwards, you can also have a look in the [experiments](experiments) directory, which contains some standalone compilable experiments.
 
-* [Asymptotics and random sampling for BCI and BCK lambda terms](https://dmg.tuwien.ac.at/dgardy/Papers/LogiqueQuantitative/BCI.pdf) by O. Bodini, D. Gardy, and A. Jacquot
-* [Linear lambda terms as invariants of rooted trivalent maps](https://arxiv.org/abs/1512.06751) by N. Zeilberger
-* [A theory of linear typings as flows on 3-valent graphs](https://arxiv.org/abs/1804.10540) by N. Zeilberger
+# Example interactive sessions
 
-# Example sessions
+* [Enumerating some terms, printing and normalizing them](#ex-enum)
+* [Generating a random closed term and making some observations, or running a repeated experiment to generate a histogram](#ex-rangen)
+* [Type inference](#ex-typeinf)
+* [Loading lambda terms from a file](#ex-file)
+* [Making diagrams](#ex-diag)
 
+<a name="ex-enum"></a>
 ## Enumerating some terms, printing and normalizing them
 
 ```haskell
-Prelude> import LinLam
 Prelude LinLam> allLT 5 0
 [A (L 0 (V 0)) (L 1 (V 1)),L 0 (A (V 0) (L 1 (V 1))),L 1 (A (L 0 (V 0)) (V 1)),L 0 (L 1 (A (V 0) (V 1))),L 1 (L 0 (A (V 0) (V 1)))]
 Prelude LinLam> printLTs (allLT 5 0)
@@ -61,6 +69,7 @@ Prelude LinLam> printLTs $ filter (betaEq (L 0 $ V 0)) (allLT 5 0)
 Prelude LinLam> 
 ```
 
+<a name="ex-rangen"></a>
 ## Generating a random closed term and making some observations, or running a repeated experiment to generate a histogram
 
 ```haskell
@@ -75,6 +84,7 @@ Prelude LinLam> histogram <$> experimentLT (\t -> size t - size(normalize t)) 30
 [(18,1),(21,2),(24,5),(27,3),(30,1),(33,7),(36,8),(39,14),(42,11),(45,7),(48,11),(51,6),(54,11),(57,5),(60,2),(63,1),(66,2),(69,1),(75,1),(78,1)]
 ```
 
+<a name="ex-typeinf"></a>
 ## Type inference
 
 ```haskell
@@ -107,6 +117,7 @@ Prelude LinLam> mapM_ (\t -> putStrLn (prettyLT t ++ " : " ++ prettyType (synthC
 \c.\b.\a.a(b)(c) : (β -> (γ -> ((γ -> (β -> α)) -> α)))
 ```
 
+<a name="ex-file"></a>
 ## Loading lambda terms from a file
 
 (See example files [bckwi.lam](terms/bckwi.lam) and [ski.lam](terms/ski.lam).)
@@ -138,6 +149,7 @@ Prelude LinLam> betaEq (foldl A or [t,t]) t
 True
 ```
 
+<a name="ex-diag"></a>
 ## Making diagrams
 
 Generate a table of string diagrams (λ-graphs) representing the term structure of all closed planar terms of size 8 (in a file named `diagrams/pt8,0.svg`):
@@ -162,7 +174,22 @@ Prelude LinLam> trenderNLT (normalize t) "diagrams/randomnlt"
 ```
 ![randomnlt](diagrams/randomnlt.svg)
 
-# Some related tools
+# Background
+
+Some papers:
+
+* [Asymptotics and random sampling for BCI and BCK lambda terms](https://dmg.tuwien.ac.at/dgardy/Papers/LogiqueQuantitative/BCI.pdf) by O. Bodini, D. Gardy, and A. Jacquot
+* [Linear lambda terms as invariants of rooted trivalent maps](https://arxiv.org/abs/1512.06751) by N. Zeilberger
+* [A theory of linear typings as flows on 3-valent graphs](https://arxiv.org/abs/1804.10540) by N. Zeilberger
+* [Asymptotic Distribution of Parameters in Trivalent Maps and Linear Lambda Terms](https://arxiv.org/abs/2106.08291v1) by O. Bodini, A. Singh, and N. Zeilberger
+
+Some talks:
+
+* [Untyped Linear Lambda Calculus and the Combinatorics of 3-valent Graphs](https://www.youtube.com/watch?v=qffzLGkeikc)
+* [Lambda Calculus and the Four Colour Theorem](http://noamz.org/talks/lam4ct.pdf)
+* [A connection between lambda calculus and maps](http://noamz.org/talks/OBT.2015.01.18.pdf)
+
+Some related tools:
 
 * George Kaye's [λ-term visualiser](https://www.georgejkaye.com/lamviz/) and [gallery](https://www.georgejkaye.com/lamviz/gallery)
 * Jason Reed's [Interactive Lambda Maps Toy](https://jcreedcmu.github.io/demo/lambda-map-drawer/public/index.html)
