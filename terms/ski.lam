@@ -1,3 +1,4 @@
+; the S, K, and I combinators (cf. https://en.wikipedia.org/wiki/SKI_combinator_calculus)
 \a.\b.\c.a c (b c)
 \a.\b.a
 \a.a

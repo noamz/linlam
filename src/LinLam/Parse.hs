@@ -13,7 +13,7 @@ type ParserLT a = GenParser Char (M.Map String Int) a
 
 parseLT :: ParserLT LT
 parseLT = parseLam <|> parseApps
-  
+
 parseLam :: ParserLT LT
 parseLam = do
   char '\\'
@@ -45,9 +45,13 @@ parseVar = do
 parseLT' :: ParserLT LT
 parseLT' = parseVar <|> between (char '(') (char ')') parseLT
 
+parseComment :: ParserLT String
+parseComment = char ';' >> manyTill anyChar newline
+
 parseLTs :: ParserLT [LT]
 parseLTs = do
-  ts <- sepEndBy parseLT newline
+  many parseComment
+  ts <- sepEndBy parseLT (newline >> many parseComment)
   eof
   return ts
 

@@ -1,3 +1,4 @@
+; the B, C, K, W, and I combinators (cf. https://en.wikipedia.org/wiki/B,_C,_K,_W_system)
 \a.\b.\c.a (b c)
 \a.\b.\c.a c b
 \a.\b.a

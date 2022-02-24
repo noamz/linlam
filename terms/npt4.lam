@@ -1,3 +1,5 @@
+; all closed normal planar terms of size 3*4+2.
+; generated with: printLTs (allNPT 14 0)
 \a.a(\b.b(\c.c(\d.d(\e.e))))
 \a.a(\b.b(\c.c(\d.\e.d(e))))
 \a.a(\b.b(\c.c(\d.d)(\e.e)))
