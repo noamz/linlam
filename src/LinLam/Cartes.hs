@@ -153,13 +153,15 @@ passport m = (sort $ map length $ permCycles (sigma m),
               sort $ map length $ permCycles (alpha m),
               sort $ map length $ permCycles (phi m))
 
+-- simple statistics of maps
+numVerts, numEdges, numFaces :: Carte -> Int
+numVerts = length . permCycles . sigma
+numEdges = length . permCycles . alpha
+numFaces = length . permCycles . phi
+
 -- Euler characteristic of a map
 euler :: Carte -> Int
-euler m = nverts - nedges + nfaces
-  where
-    nverts = length $ permCycles (sigma m)
-    nedges = length $ permCycles (alpha m)
-    nfaces = length $ permCycles (phi m)
+euler m = numVerts m - numEdges m + numFaces m
 
 -- conjugate the second permutation by the first
 conjugate :: Perm -> Perm -> Perm
