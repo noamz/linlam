@@ -240,6 +240,13 @@ plug (A'1 k t2) u = plug k (A u t2)
 plug (A'2 t1 k) u = plug k (A t1 u)
 plug (L' x k)   u = plug k (L x u)
 
+-- concatenate (= sequentially compose) contexts
+catcxt :: LTdot -> LTdot -> LTdot
+catcxt Hole        k2 = k2
+catcxt (A'1 k1 t2) k2 = A'1 (catcxt k1 k2) t2
+catcxt (A'2 t1 k1) k2 = A'2 t1 (catcxt k1 k2)
+catcxt (L' x k1)   k2 = L' x (catcxt k1 k2)
+
 -- sometimes we want to reverse a context "outside-in"
 revcxt :: LTdot -> LTdot
 revcxt k = revapp k Hole
