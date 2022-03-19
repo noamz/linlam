@@ -231,13 +231,16 @@ msubst rho t = foldl (flip subst) t rho
 data LTdot = Hole | A'1 LTdot LT | A'2 LT LTdot | L' Int LTdot
   deriving (Show,Eq)
 
+-- we represent contexts "inside-out", i.e., with the parts of the
+-- context nearest to the hole at the top-level.
+-- The plugging function is defined accordingly.
 plug :: LTdot -> LT -> LT
 plug Hole       u = u
-plug (A'1 k t2) u = A (plug k u) t2
-plug (A'2 t1 k) u = A t1 (plug k u)
-plug (L' x k)   u = L x (plug k u)
+plug (A'1 k t2) u = plug k (A u t2)
+plug (A'2 t1 k) u = plug k (A t1 u)
+plug (L' x k)   u = plug k (L x u)
 
--- sometimes we want to reverse a context inside-out
+-- sometimes we want to reverse a context "outside-in"
 revcxt :: LTdot -> LTdot
 revcxt k = revapp k Hole
   where
@@ -247,14 +250,19 @@ revcxt k = revapp k Hole
     revapp (A'2 t k) k' = revapp k (A'2 t k')
     revapp (L' x k)  k' = revapp k (L' x k')
 
+-- a term-in-focus (a.k.a. "term zipper") is a pair of a context and a term
+type LTfoc = (LTdot,LT)
+
 -- focus on all possible subterms
-focus :: LT -> [(LTdot,LT)]
-focus t = (Hole,t) :
-          case t of
-            V x     -> []
-            A t1 t2 -> [(A'1 k t2,u) | (k,u) <- focus t1] ++
-                       [(A'2 t1 k,u) | (k,u) <- focus t2]
-            L x t1  -> [(L' x k,u)   | (k,u) <- focus t1]
+focus :: LT -> [LTfoc]
+focus t = go Hole t
+  where
+    go :: LTdot -> LT -> [LTfoc]
+    go k t = (k,t) :
+             case t of
+               V x     -> []
+               A t1 t2 -> go (A'1 k t2) t1 ++ go (A'2 t1 k) t2
+               L x t1  -> go (L' x k) t1
 
 -- list of subterms
 subterms :: LT -> [LT]
@@ -265,14 +273,8 @@ subterms' :: LT -> [LT]
 subterms' = tail . subterms
 
 -- focus on all possible beta-redices subterms
-focusBeta :: LT -> [(LTdot,LT)]
-focusBeta t = 
-          case t of
-            V x     -> []
-            A t1 t2 -> [(Hole,t) | isLam t1] ++
-                       [(A'1 k t2,u) | (k,u) <- focusBeta t1] ++
-                       [(A'2 t1 k,u) | (k,u) <- focusBeta t2]
-            L x t1  -> [(L' x k,u) | (k,u) <- focusBeta t1]
+focusBeta :: LT -> [LTfoc]
+focusBeta t = [(k,u) | (k,u@(A (L _ _) _)) <- focus t]
 
 -- step of beta reduction
 beta :: LT -> [LT]
@@ -325,14 +327,8 @@ betaLevels t = [t] : go (beta t)
     go us = us : go (foldr union [] (map beta us))
 
 -- focus on all possible eta-redices subterms
-focusEta :: LT -> [(LTdot,LT)]
-focusEta t = 
-          case t of
-            V x     -> []
-            A t1 t2 -> [(A'1 k t2,u) | (k,u) <- focusEta t1] ++
-                       [(A'2 t1 k,u) | (k,u) <- focusEta t2]
-            L x t1  -> [(Hole,t) | isApp t1, let A t11 t12 = t1, t12 == V x] ++
-                       [(L' x k,u) | (k,u) <- focusEta t1]
+focusEta :: LT -> [LTfoc]
+focusEta t = [(k,u) | (k, u@(L x (A _ (V x')))) <- focus t, x == x']
 
 -- step of eta reduction
 eta :: LT -> [LT]
@@ -363,7 +359,8 @@ isBridgeless t = go t (\_ -> True)
 
 -- focus on the (osensibly unique) occurrence(s) of a given free variable 
 focusVar :: LT -> Int -> [LTdot]
-focusVar (V y) x     = [Hole | x == y]
-focusVar (A t1 t2) x = [A'1 k t2 | k <- focusVar t1 x] ++
-                       [A'2 t1 k | k <- focusVar t2 x]
-focusVar (L y t1) x  = [L' y k | y /= x, k <- focusVar t1 x]
+focusVar t x = go Hole t
+  where
+    go k (V y)     = [k | x == y]
+    go k (A t1 t2) = go (A'1 k t2) t1 ++ go (A'2 t1 k) t2
+    go k (L y t1)  = if y /= x then go (L' y k) t1 else []

@@ -5,7 +5,6 @@ module LinLam.Random where
 
 import Data.List
 import Data.Maybe
-import qualified Data.Set as Set
 
 import Control.Monad
 
@@ -15,20 +14,7 @@ import System.Exit
 
 import LinLam.Core
 import LinLam.Cartes
-
--- convert a rooted 3-valent map to a linear lambda term
-toLT :: Carte -> Int -> Set.Set Int -> Set.Set Int -> (LT, Set.Set Int)
-toLT m r visited boundary
-  | Set.member (act (alpha m) r) boundary = (V r, Set.insert r visited)
-  | otherwise =
-    let r1 = act (sigma m) (act (alpha m) r) in
-    let r2 = act (sigma m) (act (sigma m) (act (alpha m) r)) in
-    let (t1,vis') = toLT m r1 (Set.insert r visited) (Set.insert r2 boundary) in
-    if Set.member (act (alpha m) r2) vis' then
-      (L (act (alpha m) r2) t1, vis')
-    else
-      let (t2,vis'') = toLT m r2 vis' boundary in
-      (A t1 t2, vis'')
+import LinLam.Trivalent (toLT)
 
 -- return a random closed linear lambda term of size n
 randomLT :: Int -> IO LT
@@ -37,7 +23,7 @@ randomLT n = do
   let as = (n-2) `div` 3
   let ls = 1 + as
   m <- randomKMap' 3 (as + ls)
-  let (t, _) = toLT m (root m) Set.empty Set.empty
+  let t = toLT m
   return (canonify t)
 
 -- return a list of random closed linear lambda terms of size n

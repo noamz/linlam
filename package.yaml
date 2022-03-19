@@ -33,6 +33,7 @@ library:
     - LinLam.Pretty
     - LinLam.Parse
     - LinLam.Cartes
+    - LinLam.Trivalent
     - LinLam.BCI
     - LinLam.Random
     - LinLam.Tutte
