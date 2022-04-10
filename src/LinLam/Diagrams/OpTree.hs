@@ -66,6 +66,7 @@ rootGluedTrees spec top bot =
     (d1,fringe1) = diagTree' (spec { ld = reflectY . (ld spec) }) "t1" top
     (d2,fringe2) = diagTree' spec "t2" bot
 
+{-
 data Ntype = Y | Z
 
 t1, t2, t3, t4, t5, t6 :: OpTree Int Ntype
@@ -95,4 +96,4 @@ test' :: OpTree Int Ntype -> OpTree Int Ntype -> String -> IO ()
 test' t1 t2 basename = 
   renderPretty (basename ++ ".svg") (mkWidth 1024) (hsep 5 [leafGluedTrees spec t1 t2 # centerXY # pad 1.1, rootGluedTrees spec t1 t2 # (\(x,y,z) -> x) # centerXY # pad 1.1])
 
-
+-}

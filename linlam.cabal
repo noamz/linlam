@@ -37,12 +37,13 @@ library
       LinLam.Tutte
       LinLam.WF
       LinLam.Diagrams
+      LinLam.OpTree
+      LinLam.Diagrams.OpTree
   other-modules:
       LinLam.Diagrams.Grid
       LinLam.Diagrams.Matching
-      LinLam.Diagrams.OpTree
-      LinLam.OpTree
       LinLam.Permutations
+      Tests
       Paths_linlam
   hs-source-dirs:
       src
