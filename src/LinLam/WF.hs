@@ -7,6 +7,7 @@ module LinLam.WF where
 import LinLam.Core
 import LinLam.Cartes
 import LinLam.Pretty
+import LinLam.Utils
 
 import qualified Math.Combinat.Permutations as P
 
@@ -29,7 +30,7 @@ unPi k m
     -- the new map has one new edge = two new darts
     ndarts' = ndarts m + 2
     -- compute the list of vertices on the original root face, without duplicates
-    vertices = reverse $ foldl (\vs x -> if any (elem x) vs then vs else (orbit x (sigma m)):vs) [] (orbit (root m) (phi m))
+    vertices = reverse $ foldl (\vs x -> if any (elem x) vs then vs else (orbit x (act $ sigma m)):vs) [] (orbit (root m) (act $ phi m))
     -- choose the new target root vertex
     target = (vertices ++ [[ndarts'-1]]) !! k
     -- define the new vertex permutation and edge involution
@@ -81,7 +82,7 @@ _test3 n = length ms == length ts &&
 _test4 :: Int -> Bool
 _test4 n = length ms == length ts &&
            all ((==1) . euler) ms &&
-           all (\m -> length (orbit (root m) (phi m)) == ndarts m) ms
+           all (\m -> length (orbit (root m) (act $ phi m)) == ndarts m) ms
   where
     ts = allNPT (2*n-1) n
     ms = nub $ map (canonifyCarte . nptToMap) ts
@@ -115,8 +116,8 @@ mToNeutral m
   | otherwise       = A t1 t2
   where
     -- We remove the first one-corner component from the root vertex
-    root_vertex = orbit (root m) (sigma m)
-    root_face   = orbit (root m) (phi m)
+    root_vertex = orbit (root m) (act $ sigma m)
+    root_face   = orbit (root m) (act $ phi m)
     x = root_vertex !! 1
     x' = act (alpha m) x
     (rv1,rv2) = break (\y -> elem y root_face) (drop 2 root_vertex)

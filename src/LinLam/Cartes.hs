@@ -9,22 +9,16 @@ import System.Random
 import qualified Data.MemoCombinators as Memo
 import qualified Math.Combinat.Permutations as P
 
+import LinLam.Utils
+
 -- some routines on permutations
 type Perm = P.Permutation
 act = (P.!!!)
 
--- orbit of an element under a permutation
-orbit :: Int -> Perm -> [Int]
-orbit x pi = go Set.empty x
-  where
-    go s x
-      | Set.member x s = []
-      | otherwise      = x : go (Set.insert x s) (pi P.!!! x)
-
 -- remove a given list of indices from a permutation
 deletePerm :: Perm -> [Int] -> Perm
 deletePerm pi ds =
-  P.toPermutation [rename (fromJust $ find (\j -> not (elem j ds)) (tail (orbit i pi) ++ [i])) | i <- ixs]
+  P.toPermutation [rename (fromJust $ find (\j -> not (elem j ds)) (tail (orbit i (act pi)) ++ [i])) | i <- ixs]
   where
     ixs = [1..P.permutationSize pi] \\ ds
     rename j = fromJust (lookup j $ zip ixs [1..])

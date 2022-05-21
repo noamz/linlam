@@ -229,7 +229,7 @@ msubst rho t = foldl (flip subst) t rho
 
 -- datatype of one-hole contexts for linear terms
 data LTdot = Hole | A'1 LTdot LT | A'2 LT LTdot | L' Int LTdot
-  deriving (Show,Eq)
+  deriving (Show,Eq,Ord)
 
 -- we represent contexts "inside-out", i.e., with the parts of the
 -- context nearest to the hole at the top-level.

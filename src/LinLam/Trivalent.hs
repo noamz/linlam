@@ -1,5 +1,5 @@
 -- conversion between linear lambda terms and 3-valent maps
-module LinLam.Trivalent (toLT, fromLT) where
+module LinLam.Trivalent where
 
 import Data.List
 import Data.Maybe
@@ -9,6 +9,7 @@ import qualified Math.Combinat.Permutations as P
 
 import LinLam.Core
 import LinLam.Cartes
+import LinLam.Utils
 
 import Debug.Trace
 
@@ -33,45 +34,68 @@ toLT' m r visited boundary
 toLT :: Carte -> LT
 toLT m = let (t,_) = toLT' m (root m) Set.empty Set.empty in t
 
+-- intrinsic representation of linear lambda terms as combinatorial maps
+
+-- a dart is a pair ((c,t),dir) of a marked subterm c[t] and a direction up/down
 data Dir = Up | Dn
-  deriving (Show,Eq)
-type Dart = (LTdot,LT,Dir)
+  deriving (Show,Eq,Ord)
+
+type Dart = (LTfoc,Dir)
+
+data IMap = IMap { idarts :: [Dart],
+                   isigma :: Dart -> Dart,
+                   ialpha :: Dart -> Dart,
+                   iphi'  :: Dart -> Dart }
+
+oppdir :: Dir -> Dir
+oppdir Up = Dn
+oppdir Dn = Up
+
+-- compute the intrinsic combinatorial map associated to a linear lambda term
+intrinsicMap :: LT -> IMap
+intrinsicMap t = IMap { idarts = idarts, isigma = isigma, ialpha = ialpha, iphi' = iphi' }
+  where
+    edge :: LTfoc -> [Dart]
+    edge (k,u) = [((k,u),b) | b <- [Dn,Up]]
+    idarts = concatMap edge (focus t)
+
+    ialpha (ku,eps) = (ku, oppdir eps)
+
+    iphi' :: Dart -> Dart
+    iphi' ((k, A t1 t2), Up) = ((A'2 t1 k, t2), Up)
+    iphi' ((A'2 t1 k,t2),Dn) = ((A'1 k t2, t1), Up)
+    iphi' ((A'1 k t2,t1),Dn) = ((k, A t1 t2), Dn)
+    iphi' ((k,L x t), Up)    = ((catcxt k' (L' x k), V x), Dn)
+      where k' = head (focusVar t x)
+    iphi' ((k0,V x), Up) = case splitCxtAt x k0 Hole of
+      Just (k,k') -> ((L' x k, plug k' (V x)), Up)
+      Nothing     -> ((k0,V x), Dn)
+      where
+        splitCxtAt x (L' y k)   k' = if x == y then Just (k,revcxt k') else splitCxtAt x k (L' y k')
+        splitCxtAt x (A'1 k t2) k' = splitCxtAt x k (A'1 k' t2)
+        splitCxtAt x (A'2 t2 k) k' = splitCxtAt x k (A'2 t2 k')
+        splitCxtAt x Hole       k' = Nothing
+    iphi' ((L' x k,t), Dn)   = ((k, L x t), Dn)
+    iphi' ((Hole,t),Dn)      = ((Hole,t),Up)
+
+    isigma :: Dart -> Dart
+    isigma = ialpha . iphi'
 
 -- convert a linear lambda term to a rooted 3-valent map
 fromLT :: LT -> Carte
 fromLT t = Carte { ndarts = ndarts , sigma = sigma , alpha = alpha }
   where
-    t' = canonify t
-    kus = focus t'
-    binder :: Int -> Maybe (LTdot,LT)
-    binder x = find (\(k,u) -> isLam u && let L y _ = u in x == y) kus
-
-    alphau :: Dart -> Dart
-    alphau (k,t,Up)    = (k,t,Dn)
-    alphau (k,V x,Dn)  = if x `elem` free t' then (k,V x,Dn) else (k,V x,Up)
-    alphau (k,t,Dn)    = (k,t,Up)
-    
-    sigmau :: Dart -> Dart
-    sigmau (k, A t1 t2, Up) = (A'2 t1 k, t2, Dn)
-    sigmau (A'2 t1 k,t2,Dn) = (A'1 k t2, t1, Dn)
-    sigmau (A'1 k t2,t1,Dn) = (k, A t1 t2, Up)
-    sigmau (k,L x t, Up)    = (catcxt k' (L' x k), V x, Up)
-      where k' = head (focusVar t x)
-    sigmau (k0,V x, Up)     = (L' x k, plug k' (V x), Dn)
-      where
-        (k,k') = splitCxtAt x k0 Hole
-        splitCxtAt x (L' y k)   k' = if x == y then (k,revcxt k') else splitCxtAt x k (L' y k')
-        splitCxtAt x (A'1 k t2) k' = splitCxtAt x k (A'1 k' t2)
-        splitCxtAt x (A'2 t2 k) k' = splitCxtAt x k (A'2 t2 k')
-    sigmau (L' x k,t, Dn)   = (k, L x t, Up)
-    sigmau (k,t,Dn)      = (k,t,Dn)
-
-    edge :: (LTdot,LT) -> [Dart]
-    edge (k,u) = [(k,u,b) | b <- Dn : [Up | not (isVar u) || (isVar u && let V x = u in not (x `elem` free t'))]]
-    ds = concatMap edge kus
-    labels = zip ds [1..]
+    imap = intrinsicMap t
+    labels = zip (idarts imap) [1..]
     di d = fromJust $ lookup d labels
-    ndarts = length ds
-    sigma = P.toPermutation $ [di (sigmau d) | d <- ds]
-    alpha = P.toPermutation $ [di (alphau d) | d <- ds]
+    ndarts = length labels
+    sigma = P.toPermutation $ [di (isigma imap d) | d <- idarts imap]
+    alpha = P.toPermutation $ [di (ialpha imap d) | d <- idarts imap]
 
+-- inductive computation of the genus
+genusLT :: LT -> Int
+genusLT (V _)     = 0
+genusLT (A t1 t2) = genusLT t1 + genusLT t2
+genusLT (L x t1)  = (if sameFace x t1 then 0 else 1) + genusLT t1
+  where
+    sameFace x t1 = ((Hole,t1),Dn) `elem` orbit ((head (focusVar t1 x),V x),Dn) (iphi' $ intrinsicMap t1)
