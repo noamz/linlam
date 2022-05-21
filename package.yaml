@@ -41,4 +41,5 @@ library:
     - LinLam.Diagrams
     - LinLam.OpTree
     - LinLam.Diagrams.OpTree
+    - LinLam.Utils
     

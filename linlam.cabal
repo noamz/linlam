@@ -39,6 +39,7 @@ library
       LinLam.Diagrams
       LinLam.OpTree
       LinLam.Diagrams.OpTree
+      LinLam.Utils
   other-modules:
       LinLam.Diagrams.Grid
       LinLam.Diagrams.Matching
