@@ -60,12 +60,11 @@ intrinsicMap t = IMap { idarts = idarts, isigma = isigma, ialpha = ialpha, iphi'
 
     ialpha (ot,eps) = (ot, oppdir eps)
 
-    iphi' ((k, A t1 t2), Up) = ((A'2 t1 k, t2), Up)
-    iphi' ((A'2 t1 k,t2),Dn) = ((A'1 k t2, t1), Up)
-    iphi' ((A'1 k t2,t1),Dn) = ((k, A t1 t2), Dn)
-    iphi' ((k,L x t), Up)    = ((catcxt k' (L' x k), V x), Dn)
-      where k' = focusVar t x
-    iphi' ((k0,V x), Up) = case splitCxtAt x k0 Hole of
+    iphi' ((k, A t1 t2), Up)  = ((A'2 t1 k, t2), Up)
+    iphi' ((A'2 t1 k, t2),Dn) = ((A'1 k t2, t1), Up)
+    iphi' ((A'1 k t2, t1),Dn) = ((k, A t1 t2), Dn)
+    iphi' ((k,L x t), Up)     = ((focusVar t x `catcxt` L' x k, V x), Dn)
+    iphi' ((k0,V x), Up)      = case splitCxtAt x k0 Hole of
       Just (k,k') -> ((L' x k, plug k' (V x)), Up)
       Nothing     -> ((k0,V x), Dn)
       where
@@ -73,7 +72,7 @@ intrinsicMap t = IMap { idarts = idarts, isigma = isigma, ialpha = ialpha, iphi'
         splitCxtAt x (A'1 k t2) k' = splitCxtAt x k (A'1 k' t2)
         splitCxtAt x (A'2 t2 k) k' = splitCxtAt x k (A'2 t2 k')
         splitCxtAt x Hole       k' = Nothing
-    iphi' ((L' x k,t), Dn)   = ((k, L x t), Dn)
+    iphi' ((L' x k,t), Dn)    = ((k,L x t), Dn)
     iphi' ((Hole,t),Dn)      = ((Hole,t),Up)
 
     isigma = ialpha . iphi'
