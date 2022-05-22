@@ -36,7 +36,7 @@ handleIndex (A'1 k t) = 1 + length (focusNeutralHandle t) + handleIndex k
 
 -- tutte decomposition of an LR-planar normal term
 nptlrTutte :: LT -> Tutte
-nptlrTutte (L x t) = case head $ focusVar t x of
+nptlrTutte (L x t) = case focusVar t x of
   A'2 u k -> RootNonBridge (handleIndex k) (nptlrTutte (plug k u))
   A'1 k u -> RootBridge (nptlrTutte (L x (plug k (V x)))) (nptlrTutte u)
   _       -> Trivial

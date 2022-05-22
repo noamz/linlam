@@ -364,10 +364,14 @@ isBridgeless t = go t (\_ -> True)
     go (A t u) cont = go t (\k1 -> go u (\k2 -> cont (k1+k2)))
     go (L x t) cont = go t (\k1 -> if k1 > 1 then cont (k1-1) else False)
 
--- focus on the (osensibly unique) occurrence(s) of a given free variable 
-focusVar :: LT -> Int -> [LTdot]
-focusVar t x = go Hole t
+-- focus on all occurrences of a given free variable 
+focusVar' :: LT -> Int -> [LTdot]
+focusVar' t x = go Hole t
   where
     go k (V y)     = [k | x == y]
     go k (A t1 t2) = go (A'1 k t2) t1 ++ go (A'2 t1 k) t2
     go k (L y t1)  = if y /= x then go (L' y k) t1 else []
+
+-- focus on the osensibly unique occurrence of a given free variable 
+focusVar :: LT -> Int -> LTdot
+focusVar t x = head (focusVar' t x)
