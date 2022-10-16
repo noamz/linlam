@@ -53,7 +53,7 @@ size (L _ t1)  = 1 + size t1
 -- list of free vars in left-to-right order
 free :: LT -> [Int]
 free (V x)      = [x]
-free (A t1 t2)  = free t1 ++ free t2
+free (A t1 t2)  = free t1 `union` free t2
 free (L x t1)   = free t1 \\ [x]
 
 -- lambda closure of a term
