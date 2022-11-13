@@ -30,6 +30,7 @@ library:
     - LinLam
     - LinLam.Core
     - LinLam.Typing
+    - LinLam.Search
     - LinLam.Pretty
     - LinLam.Parse
     - LinLam.Cartes

@@ -3,6 +3,7 @@ module LinLam.Parse where
 import Data.Maybe
 
 import LinLam.Core
+import LinLam.Typing
 
 import Text.ParserCombinators.Parsec
 import qualified Data.Map as M
@@ -31,14 +32,17 @@ parseApps = do
   ts <- sepBy parseLT' (skipMany (char ' '))
   return (foldl A h ts)
 
-parseVar :: ParserLT LT
-parseVar = do
+parseIdent :: ParserLT Int
+parseIdent = do
   vname <- many1 alphaNum
   m <- getState
   let m' = if M.member vname m then m else M.insert vname (M.size m) m
   setState m'
   let x = fromJust $ M.lookup vname m'
-  return $ V x
+  return $ x
+
+parseVar :: ParserLT LT
+parseVar = V <$> parseIdent
 
 parseLT' :: ParserLT LT
 parseLT' = parseVar <|> between (char '(') (char ')') parseLT
@@ -54,7 +58,7 @@ parseLTs = do
   return ts
 
 readLT :: String -> LT
-readLT w = case runParser parseLT M.empty "" w of
+readLT w = case runParser (parseLT <* eof) M.empty "" w of
              Right t -> t
              Left err -> error ("readLT: " ++ show err)
 
@@ -67,8 +71,24 @@ readLTsFromFile file = do
       print err
       error ("readLTsFromFile: parse error")
 
-{-
-instance Read LT where
-  read = readLT
--}
+parseTVar :: ParserLT Type
+parseTVar = TVar <$> parseIdent
 
+parseTFn :: ParserLT Type
+parseTFn = do
+  a <- parseType'
+  spaces
+  string "->"
+  spaces
+  b <- parseType
+  return $ TFn a b
+
+parseType :: ParserLT Type
+parseType = try parseTFn <|> parseType'
+
+parseType' = parseTVar <|> between (char '(') (char ')') parseType
+
+readType :: String -> Type
+readType w = case runParser (parseType <* eof) M.empty "" w of
+             Right a -> a
+             Left err -> error ("readType: " ++ show err)
