@@ -327,11 +327,11 @@ betaLE t1 t2 = case compare (size t1) (size t2) of
 
 -- computes levels of the beta reduction graph of a term
 betaLevels :: LT -> [[LT]]
-betaLevels t = [t] : go (beta t)
+betaLevels t = [t] : go (nub $ beta t)
   where
     go :: [LT] -> [[LT]]
     go [] = []
-    go us = us : go (foldr union [] (map beta us))
+    go us = us : go (foldr union [] (map (nub . beta) us))
 
 -- focus on all possible eta-redices subterms
 focusEta :: LT -> [LTfoc]
